@@ -86,6 +86,7 @@ function createRule(
 	description: string,
 	validate: AggregateSkillValidator,
 	optionProperties: Readonly<Record<string, SkillRuleOptionSchema>>,
+	recommended: boolean,
 ) {
 	const signatures = new Map<string, string>();
 
@@ -93,7 +94,7 @@ function createRule(
 		meta: {
 			docs: {
 				description,
-				recommended: true,
+				recommended,
 			},
 			schema: [
 				{
@@ -143,11 +144,16 @@ function createRule(
 
 /**
  * Creates a repository-scoped rule that validates each SKILL.md independently.
+ *
+ * Pass `recommended: false` for opt-in rules that should stay out of the
+ * recommended preset (for example, stricter checks that diverge from this
+ * plugin's default leniency).
  */
 export function createSkillRule(
 	description: string,
 	validate: SkillValidator,
 	optionProperties: Readonly<Record<string, SkillRuleOptionSchema>> = {},
+	recommended = true,
 ) {
 	return createRule(
 		description,
@@ -166,6 +172,7 @@ export function createSkillRule(
 			return issues;
 		},
 		optionProperties,
+		recommended,
 	);
 }
 
@@ -177,8 +184,9 @@ export function createAggregateSkillRule(
 	description: string,
 	validate: AggregateSkillValidator,
 	optionProperties: Readonly<Record<string, SkillRuleOptionSchema>> = {},
+	recommended = true,
 ) {
-	return createRule(description, validate, optionProperties);
+	return createRule(description, validate, optionProperties, recommended);
 }
 
 export function discoverSkillFiles(
