@@ -19,7 +19,8 @@
 		"url": "git+https://github.com/ryoppippi/oxlint-plugin-skills.git"
 	},
 	"files": [
-		"dist"
+		"dist",
+		"src"
 	],
 	"type": "module",
 	"main": "./dist/index.js",
@@ -33,8 +34,8 @@
 	"scripts": {
 		"build": "tsdown",
 		"check": "pnpm run format:check && pnpm run lint && pnpm run typecheck && pnpm run test && pnpm run build",
-		"format": "oxfmt --write .",
-		"format:check": "oxfmt --check .",
+		"format": "oxfmt --ignore-path=.oxfmtignore --write .",
+		"format:check": "oxfmt --ignore-path=.oxfmtignore --check .",
 		"lint": "oxlint --deny-warnings .",
 		"pretest": "pnpm run build",
 		"test": "vitest run",

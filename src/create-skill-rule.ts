@@ -1,5 +1,5 @@
 /**
- * Shared infrastructure for repository-scoped Agent Skill rules.
+ * Creates repository-scoped Agent Skill rules.
  *
  * Oxlint JavaScript plugins receive JavaScript and TypeScript ASTs, not
  * Markdown documents. A skill rule therefore uses the first visited Program
@@ -164,4 +164,16 @@ function isMissingDirectoryError(error: unknown): boolean {
 		'code' in error &&
 		(error.code === 'ENOENT' || error.code === 'ENOTDIR')
 	);
+}
+
+if (import.meta.vitest) {
+	test('finds SKILL.md files in the standard skill roots', async () => {
+		const { fileURLToPath } = await import('node:url');
+		const cwd = fileURLToPath(new URL('./__fixture__/discovery', import.meta.url));
+
+		expect(discoverSkillFiles(cwd)).toEqual([
+			join(cwd, '.agents/skills/commit/SKILL.md'),
+			join(cwd, 'agents/skills/testing/SKILL.md'),
+		]);
+	});
 }

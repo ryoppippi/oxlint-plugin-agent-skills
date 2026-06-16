@@ -20,7 +20,7 @@
  */
 import { fromMarkdown } from 'mdast-util-from-markdown';
 
-import { createSkillRule } from './rule.ts';
+import { createSkillRule } from '../../create-skill-rule.ts';
 
 export interface ReferenceDepthIssue {
 	line: number;
@@ -94,4 +94,39 @@ function isDeepRelativeReference(url: string): boolean {
 
 function isMarkdownNode(value: unknown): value is MarkdownNode {
 	return typeof value === 'object' && value !== null;
+}
+
+if (import.meta.vitest) {
+	test('accepts top-level and one-directory references', async () => {
+		const issues = validateReferenceDepth(
+			await readFixture('./__fixture__/valid/shallow/SKILL.md'),
+		);
+
+		expect(issues).toEqual([]);
+	});
+
+	test('reports references nested more than one directory deep', async () => {
+		const issues = validateReferenceDepth(await readFixture('./__fixture__/invalid/SKILL.md'));
+
+		expect(issues).toEqual([
+			{
+				line: 6,
+				message:
+					'Reference "references/platform/api.md" is nested too deeply; link files at most one directory below SKILL.md.',
+			},
+		]);
+	});
+
+	test('ignores external links and Markdown inside code blocks', async () => {
+		const issues = validateReferenceDepth(
+			await readFixture('./__fixture__/valid/ignored/SKILL.md'),
+		);
+
+		expect(issues).toEqual([]);
+	});
+
+	async function readFixture(path: string): Promise<string> {
+		const { readFile } = await import('node:fs/promises');
+		return readFile(new URL(path, import.meta.url), 'utf8');
+	}
 }

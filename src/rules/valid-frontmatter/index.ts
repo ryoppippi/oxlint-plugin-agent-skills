@@ -24,7 +24,7 @@
  */
 import { parseDocument } from 'yaml';
 
-import { createSkillRule } from './rule.ts';
+import { createSkillRule } from '../../create-skill-rule.ts';
 
 export type FrontmatterIssueCode =
 	| 'invalid-allowed-tools'
@@ -251,4 +251,69 @@ function isRecord(value: unknown): value is Record<string, unknown> {
 
 function issue(code: FrontmatterIssueCode, line: number, message: string): FrontmatterIssue {
 	return { code, line, message };
+}
+
+if (import.meta.vitest) {
+	test('accepts valid Agent Skill frontmatter', async () => {
+		const issues = validateFrontmatter(await readFixture('./__fixture__/valid/SKILL.md'));
+
+		expect(issues).toEqual([]);
+	});
+
+	test('requires a closed YAML frontmatter block', async () => {
+		const issues = validateFrontmatter(
+			await readFixture('./__fixture__/invalid/unclosed/SKILL.md'),
+		);
+
+		expect(issues.map(({ code, line }) => ({ code, line }))).toEqual([
+			{ code: 'unclosed-frontmatter', line: 1 },
+		]);
+	});
+
+	test('reports invalid YAML at its SKILL.md line', async () => {
+		const issues = validateFrontmatter(await readFixture('./__fixture__/invalid/yaml/SKILL.md'));
+
+		expect(issues.map(({ code, line }) => ({ code, line }))).toEqual([
+			{ code: 'invalid-frontmatter', line: 3 },
+		]);
+	});
+
+	test('requires name and description fields', async () => {
+		const issues = validateFrontmatter(
+			await readFixture('./__fixture__/invalid/missing-required/SKILL.md'),
+		);
+
+		expect(issues.map(({ code }) => code)).toEqual(['missing-name', 'missing-description']);
+	});
+
+	test.each([
+		['name-uppercase', 'invalid-name'],
+		['name-leading-hyphen', 'invalid-name'],
+		['name-double-hyphen', 'invalid-name'],
+		['name-reserved', 'reserved-name'],
+	])('rejects the name fixture %s', async (fixture, expectedCode) => {
+		const issues = validateFrontmatter(
+			await readFixture(`./__fixture__/invalid/${fixture}/SKILL.md`),
+		);
+
+		expect(issues.map(({ code }) => code)).toContain(expectedCode);
+	});
+
+	test('validates optional field types', async () => {
+		const issues = validateFrontmatter(
+			await readFixture('./__fixture__/invalid/optional-fields/SKILL.md'),
+		);
+
+		expect(issues.map(({ code }) => code)).toEqual([
+			'invalid-license',
+			'invalid-compatibility',
+			'invalid-metadata-value',
+			'invalid-allowed-tools',
+		]);
+	});
+
+	async function readFixture(path: string): Promise<string> {
+		const { readFile } = await import('node:fs/promises');
+		return readFile(new URL(path, import.meta.url), 'utf8');
+	}
 }
