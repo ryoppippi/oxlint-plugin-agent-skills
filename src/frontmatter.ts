@@ -68,7 +68,7 @@ export function parseFrontmatter(source: string): ParsedFrontmatter {
 			issues: [
 				issue(
 					'invalid-frontmatter',
-					document.errors[0]?.linePos?.[0].line ?? 1,
+					(document.errors[0]?.linePos?.[0].line ?? 0) + 1,
 					'YAML frontmatter must be valid.',
 				),
 			],

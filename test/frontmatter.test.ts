@@ -31,6 +31,18 @@ description: Reviews code.
 		]);
 	});
 
+	it('reports invalid YAML at its SKILL.md line', () => {
+		const issues = validateFrontmatter(`---
+name: reviewing-code
+description: [
+---
+`);
+
+		expect(issues.map(({ code, line }) => ({ code, line }))).toEqual([
+			{ code: 'invalid-frontmatter', line: 3 },
+		]);
+	});
+
 	it('requires name and description fields', () => {
 		const issues = validateFrontmatter(`---
 license: MIT
