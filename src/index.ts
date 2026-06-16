@@ -5,6 +5,7 @@ import { nameMatchesDirectoryRule } from './rules/name-matches-directory/index.t
 import { noDeepReferencesRule } from './rules/no-deep-references/index.ts';
 import { noDuplicateSkillNameRule } from './rules/no-duplicate-skill-name/index.ts';
 import { noEmptySkillBodyRule } from './rules/no-empty-skill-body/index.ts';
+import { noWindowsPathsRule } from './rules/no-windows-paths/index.ts';
 import { skillIndexBudgetRule } from './rules/skill-index-budget/index.ts';
 import { validFrontmatterRule } from './rules/valid-frontmatter/index.ts';
 
@@ -18,6 +19,7 @@ const plugin = definePlugin({
 		'no-deep-references': noDeepReferencesRule,
 		'no-duplicate-skill-name': noDuplicateSkillNameRule,
 		'no-empty-skill-body': noEmptySkillBodyRule,
+		'no-windows-paths': noWindowsPathsRule,
 		'skill-index-budget': skillIndexBudgetRule,
 		'valid-frontmatter': validFrontmatterRule,
 	},
@@ -46,6 +48,7 @@ if (import.meta.vitest) {
 			'no-deep-references',
 			'no-duplicate-skill-name',
 			'no-empty-skill-body',
+			'no-windows-paths',
 			'skill-index-budget',
 			'valid-frontmatter',
 		]);
@@ -86,6 +89,10 @@ if (import.meta.vitest) {
 			'./rules/no-empty-skill-body/__fixture__/invalid/SKILL.md',
 			join(cwd, '.agents/skills/empty-body/SKILL.md'),
 		);
+		await copyFixture(
+			'./rules/no-windows-paths/__fixture__/invalid/SKILL.md',
+			join(cwd, '.agents/skills/backslash-paths/SKILL.md'),
+		);
 		await writeFile(join(cwd, 'anchor.js'), 'const anchor = 1;\n');
 		await writeFile(
 			join(cwd, '.oxlintrc.json'),
@@ -98,6 +105,7 @@ if (import.meta.vitest) {
 					'skills/no-deep-references': 'error',
 					'skills/no-duplicate-skill-name': 'error',
 					'skills/no-empty-skill-body': 'error',
+					'skills/no-windows-paths': 'error',
 					'skills/skill-index-budget': ['error', { maxCharacters: 1 }],
 					'skills/valid-frontmatter': 'error',
 				},
@@ -126,6 +134,7 @@ if (import.meta.vitest) {
 		expect(output).toContain('[Error/skills(no-duplicate-skill-name)]');
 		expect(output).toContain('[Error/skills(no-empty-skill-body)]');
 		expect(output).toContain('[Error/skills(skill-index-budget)]');
+		expect(output).toContain('[Error/skills(no-windows-paths)]');
 	});
 
 	test('scans configured skill roots', async () => {
