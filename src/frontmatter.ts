@@ -21,43 +21,75 @@ export interface FrontmatterIssue {
 	message: string;
 }
 
+export interface ParsedFrontmatter {
+	data?: Record<string, unknown>;
+	issues: FrontmatterIssue[];
+	lines: readonly string[];
+}
+
 type Frontmatter = Record<string, unknown>;
 
 const NAME_PATTERN = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
 const XML_TAG_PATTERN = /<[^>]+>/;
 
 export function validateFrontmatter(source: string): FrontmatterIssue[] {
+	const parsed = parseFrontmatter(source);
+
+	if (parsed.data === undefined) {
+		return parsed.issues;
+	}
+
+	return [...parsed.issues, ...validateFields(parsed.data, parsed.lines)];
+}
+
+export function parseFrontmatter(source: string): ParsedFrontmatter {
 	const lines = source.split(/\r?\n/);
 
 	if (lines[0] !== '---') {
-		return [issue('missing-frontmatter', 1, 'SKILL.md must start with YAML frontmatter.')];
+		return {
+			issues: [issue('missing-frontmatter', 1, 'SKILL.md must start with YAML frontmatter.')],
+			lines,
+		};
 	}
 
 	const closingLineIndex = lines.findIndex((line, index) => index > 0 && line === '---');
 
 	if (closingLineIndex === -1) {
-		return [issue('unclosed-frontmatter', 1, 'YAML frontmatter must end with a --- delimiter.')];
+		return {
+			issues: [issue('unclosed-frontmatter', 1, 'YAML frontmatter must end with a --- delimiter.')],
+			lines,
+		};
 	}
 
 	const document = parseDocument(lines.slice(1, closingLineIndex).join('\n'));
 
 	if (document.errors.length > 0) {
-		return [
-			issue(
-				'invalid-frontmatter',
-				document.errors[0]?.linePos?.[0].line ?? 1,
-				'YAML frontmatter must be valid.',
-			),
-		];
+		return {
+			issues: [
+				issue(
+					'invalid-frontmatter',
+					document.errors[0]?.linePos?.[0].line ?? 1,
+					'YAML frontmatter must be valid.',
+				),
+			],
+			lines,
+		};
 	}
 
 	const frontmatter = document.toJS();
 
 	if (!isRecord(frontmatter)) {
-		return [issue('invalid-frontmatter', 1, 'YAML frontmatter must be a key-value mapping.')];
+		return {
+			issues: [issue('invalid-frontmatter', 1, 'YAML frontmatter must be a key-value mapping.')],
+			lines,
+		};
 	}
 
-	return validateFields(frontmatter, lines);
+	return {
+		data: frontmatter,
+		issues: [],
+		lines,
+	};
 }
 
 function validateFields(frontmatter: Frontmatter, lines: readonly string[]): FrontmatterIssue[] {
