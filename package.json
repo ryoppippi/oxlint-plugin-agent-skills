@@ -1,6 +1,6 @@
 {
 	"name": "oxlint-plugin-skills",
-	"version": "0.0.0",
+	"version": "0.1.0",
 	"description": "Oxlint JavaScript plugin for validating Agent Skills against the Agent Skills specification and authoring best practices.",
 	"keywords": [
 		"agent-skills",
