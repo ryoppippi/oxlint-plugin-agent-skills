@@ -36,6 +36,7 @@
 		"format": "oxfmt --write .",
 		"format:check": "oxfmt --check .",
 		"lint": "oxlint --deny-warnings .",
+		"pretest": "pnpm run build",
 		"test": "vitest run",
 		"test:watch": "vitest",
 		"typecheck": "tsc --noEmit"
