@@ -18,7 +18,7 @@ pnpm add -D oxlint oxlint-plugin-skills
 	"rules": {
 		"skills/valid-frontmatter": "error",
 		"skills/name-matches-directory": "error",
-		"skills/max-skill-lines": "warn",
+		"skills/max-skill-lines": ["warn", { "maxLines": 220 }],
 		"skills/no-deep-references": "warn",
 	},
 }
@@ -58,7 +58,7 @@ location.
 | ----------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------- |
 | [`skills/valid-frontmatter`](src/rules/valid-frontmatter/README.md)           | Valid YAML, required `name` and `description`, field lengths and types, naming syntax, XML tags, and reserved names |
 | [`skills/name-matches-directory`](src/rules/name-matches-directory/README.md) | Frontmatter `name` matches the directory containing `SKILL.md`                                                      |
-| [`skills/max-skill-lines`](src/rules/max-skill-lines/README.md)               | `SKILL.md` contains no more than 220 lines                                                                          |
+| [`skills/max-skill-lines`](src/rules/max-skill-lines/README.md)               | `SKILL.md` stays within a configurable line limit, defaulting to 220                                                |
 | [`skills/no-deep-references`](src/rules/no-deep-references/README.md)         | Relative Markdown links, images, and definitions point no deeper than one directory below `SKILL.md`                |
 
 The 220-line limit is an operational safeguard based on a

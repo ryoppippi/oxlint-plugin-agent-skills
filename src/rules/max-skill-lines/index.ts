@@ -13,9 +13,8 @@
  * newline does not create an extra empty line. The first line over the
  * configured maximum is used as the diagnostic location.
  *
- * The public Oxlint rule uses the 220-line limit. The validator
- * accepts a custom maximum to keep its boundary behavior independently
- * testable without changing the rule's user-facing contract.
+ * The public Oxlint rule defaults to 220 lines and accepts any positive integer
+ * through the `maxLines` option.
  *
  * @see https://platform.claude.com/docs/en/agents-and-tools/agent-skills/best-practices
  * @see https://www.reddit.com/r/codex/comments/1t1rbqt/codex_may_only_read_the_first_220_lines_of_a/
@@ -28,11 +27,17 @@ export interface SkillLengthIssue {
 }
 
 /**
- * Oxlint rule that limits each SKILL.md entry point to 220 lines.
+ * Oxlint rule that limits each SKILL.md entry point to a configurable length.
  */
 export const maxSkillLinesRule = createSkillRule(
-	'Limit SKILL.md instructions to 220 lines.',
-	(_filePath, source) => validateSkillLength(source),
+	'Limit SKILL.md instructions to a configurable number of lines.',
+	(_filePath, source, option) => validateSkillLength(source, readMaxLines(option)),
+	{
+		maxLines: {
+			minimum: 1,
+			type: 'integer',
+		},
+	},
 );
 
 export function validateSkillLength(source: string, maxLines = 220): SkillLengthIssue | undefined {
@@ -49,6 +54,21 @@ export function validateSkillLength(source: string, maxLines = 220): SkillLength
 	};
 }
 
+function readMaxLines(option: unknown): number {
+	if (
+		typeof option === 'object' &&
+		option !== null &&
+		'maxLines' in option &&
+		typeof option.maxLines === 'number' &&
+		Number.isInteger(option.maxLines) &&
+		option.maxLines >= 1
+	) {
+		return option.maxLines;
+	}
+
+	return 220;
+}
+
 if (import.meta.vitest) {
 	test('accepts a SKILL.md with 220 lines', async () => {
 		expect(validateSkillLength(await readFixture('./__fixture__/valid/SKILL.md'))).toBeUndefined();
@@ -59,6 +79,14 @@ if (import.meta.vitest) {
 			line: 221,
 			message:
 				'SKILL.md has 221 lines; keep it at or below 220 lines and move details into referenced files.',
+		});
+	});
+
+	test('uses a configured line limit', async () => {
+		expect(validateSkillLength(await readFixture('./__fixture__/valid/SKILL.md'), 219)).toEqual({
+			line: 220,
+			message:
+				'SKILL.md has 220 lines; keep it at or below 219 lines and move details into referenced files.',
 		});
 	});
 

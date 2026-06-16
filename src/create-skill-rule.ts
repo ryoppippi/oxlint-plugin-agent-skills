@@ -32,29 +32,33 @@ export interface SkillIssue {
 export type SkillValidator = (
 	filePath: string,
 	source: string,
+	option: unknown,
 ) => SkillIssue | readonly SkillIssue[] | undefined;
 
 export const DEFAULT_SKILL_ROOTS = ['.agents/skills', 'agents/skills', 'skills'] as const;
 
-const ROOT_OPTIONS_SCHEMA = [
-	{
-		additionalProperties: false,
-		properties: {
-			roots: {
-				items: {
-					minLength: 1,
-					type: 'string',
-				},
-				minItems: 1,
-				type: 'array',
-				uniqueItems: true,
-			},
-		},
-		type: 'object',
+const ROOTS_OPTION_SCHEMA = {
+	items: {
+		minLength: 1,
+		type: 'string',
 	},
-] as const;
+	minItems: 1,
+	type: 'array',
+	uniqueItems: true,
+} as const;
 
-export function createSkillRule(description: string, validate: SkillValidator) {
+interface IntegerOptionSchema {
+	minimum?: number;
+	type: 'integer';
+}
+
+type SkillRuleOptionSchema = IntegerOptionSchema | typeof ROOTS_OPTION_SCHEMA;
+
+export function createSkillRule(
+	description: string,
+	validate: SkillValidator,
+	optionProperties: Readonly<Record<string, SkillRuleOptionSchema>> = {},
+) {
 	const signatures = new Map<string, string>();
 
 	return defineRule({
@@ -63,14 +67,24 @@ export function createSkillRule(description: string, validate: SkillValidator) {
 				description,
 				recommended: true,
 			},
-			schema: ROOT_OPTIONS_SCHEMA,
+			schema: [
+				{
+					additionalProperties: false,
+					properties: {
+						roots: ROOTS_OPTION_SCHEMA,
+						...optionProperties,
+					},
+					type: 'object',
+				},
+			],
 			type: 'problem',
 		},
 		create(context) {
 			return {
 				Program(node) {
-					const roots = readRoots(context.options[0]);
-					const cacheKey = `${context.cwd}\0${roots.join('\0')}`;
+					const option = context.options[0];
+					const roots = readRoots(option);
+					const cacheKey = `${context.cwd}\0${JSON.stringify(option)}\0${roots.join('\0')}`;
 					const skillFiles = discoverSkillFiles(context.cwd, roots);
 					const skills = skillFiles.map((filePath) => ({
 						filePath,
@@ -87,7 +101,7 @@ export function createSkillRule(description: string, validate: SkillValidator) {
 					signatures.set(cacheKey, signature);
 
 					for (const skill of skills) {
-						const result = validate(skill.filePath, skill.source);
+						const result = validate(skill.filePath, skill.source, option);
 						const issues = result === undefined ? [] : Array.isArray(result) ? result : [result];
 
 						for (const issue of issues) {

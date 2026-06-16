@@ -143,6 +143,50 @@ if (import.meta.vitest) {
 		expect(output).toContain('[Error/skills(valid-frontmatter)]');
 	});
 
+	test('uses the configured maximum skill length', async () => {
+		const { mkdtemp, writeFile } = await import('node:fs/promises');
+		const { tmpdir } = await import('node:os');
+		const { join, resolve } = await import('node:path');
+		const { spawnSync } = await import('node:child_process');
+		const cwd = await mkdtemp(join(tmpdir(), 'oxlint-plugin-skills-'));
+		temporaryDirectories.push(cwd);
+		await copyFixture(
+			'./rules/max-skill-lines/__fixture__/valid/SKILL.md',
+			join(cwd, '.agents/skills/valid/SKILL.md'),
+		);
+		await writeFile(join(cwd, 'anchor.js'), 'const anchor = 1;\n');
+		await writeFile(
+			join(cwd, '.oxlintrc.json'),
+			JSON.stringify({
+				categories: { correctness: 'off' },
+				jsPlugins: [resolve('dist/index.js')],
+				rules: {
+					'skills/max-skill-lines': ['error', { maxLines: 219 }],
+				},
+			}),
+		);
+
+		const result = spawnSync(
+			process.execPath,
+			[
+				resolve('node_modules/oxlint/bin/oxlint'),
+				'--config',
+				'.oxlintrc.json',
+				'anchor.js',
+				'--format',
+				'unix',
+			],
+			{ cwd, encoding: 'utf8' },
+		);
+		const output = `${result.stdout}${result.stderr}`;
+
+		expect(result.status).toBe(1);
+		expect(output).toContain(
+			'SKILL.md has 220 lines; keep it at or below 219 lines and move details into referenced files.',
+		);
+		expect(output).toContain('[Error/skills(max-skill-lines)]');
+	});
+
 	async function copyFixture(source: string, destination: string): Promise<void> {
 		const { copyFile, mkdir } = await import('node:fs/promises');
 		const { dirname } = await import('node:path');

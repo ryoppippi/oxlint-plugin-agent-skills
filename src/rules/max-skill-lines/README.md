@@ -1,6 +1,6 @@
 # `skills/max-skill-lines`
 
-Limits `SKILL.md` to 220 lines.
+Limits `SKILL.md` to a configurable number of lines. The default is 220.
 
 A community analysis of 30 days of Codex sessions found that the median initial
 skill read was 220 lines across several model and reasoning configurations.
@@ -13,11 +13,18 @@ Move detailed guidance into directly linked files such as
 
 ## Options
 
-Use `roots` to replace the default skill roots:
+Set `maxLines` to any positive integer. Use `roots` to replace the default
+skill roots:
 
 ```json
 {
-	"skills/max-skill-lines": ["error", { "roots": ["company/skills"] }]
+	"skills/max-skill-lines": [
+		"error",
+		{
+			"maxLines": 300,
+			"roots": ["company/skills"]
+		}
+	]
 }
 ```
 
