@@ -3,6 +3,7 @@ import { definePlugin } from '@oxlint/plugins';
 import { maxSkillLinesRule } from './rules/max-skill-lines/index.ts';
 import { nameMatchesDirectoryRule } from './rules/name-matches-directory/index.ts';
 import { noDeepReferencesRule } from './rules/no-deep-references/index.ts';
+import { noDuplicateSkillNameRule } from './rules/no-duplicate-skill-name/index.ts';
 import { validFrontmatterRule } from './rules/valid-frontmatter/index.ts';
 
 const plugin = definePlugin({
@@ -13,6 +14,7 @@ const plugin = definePlugin({
 		'max-skill-lines': maxSkillLinesRule,
 		'name-matches-directory': nameMatchesDirectoryRule,
 		'no-deep-references': noDeepReferencesRule,
+		'no-duplicate-skill-name': noDuplicateSkillNameRule,
 		'valid-frontmatter': validFrontmatterRule,
 	},
 });
@@ -38,6 +40,7 @@ if (import.meta.vitest) {
 			'max-skill-lines',
 			'name-matches-directory',
 			'no-deep-references',
+			'no-duplicate-skill-name',
 			'valid-frontmatter',
 		]);
 	});
@@ -65,6 +68,14 @@ if (import.meta.vitest) {
 			'./rules/valid-frontmatter/__fixture__/invalid/missing-required/SKILL.md',
 			join(cwd, '.agents/skills/missing-required/SKILL.md'),
 		);
+		await copyFixture(
+			'./rules/no-duplicate-skill-name/__fixture__/invalid/a/code-review/SKILL.md',
+			join(cwd, '.agents/skills/code-review/SKILL.md'),
+		);
+		await copyFixture(
+			'./rules/no-duplicate-skill-name/__fixture__/invalid/b/code-review/SKILL.md',
+			join(cwd, 'agents/skills/code-review/SKILL.md'),
+		);
 		await writeFile(join(cwd, 'anchor.js'), 'const anchor = 1;\n');
 		await writeFile(
 			join(cwd, '.oxlintrc.json'),
@@ -75,6 +86,7 @@ if (import.meta.vitest) {
 					'skills/max-skill-lines': 'error',
 					'skills/name-matches-directory': 'error',
 					'skills/no-deep-references': 'error',
+					'skills/no-duplicate-skill-name': 'error',
 					'skills/valid-frontmatter': 'error',
 				},
 			}),
@@ -99,6 +111,7 @@ if (import.meta.vitest) {
 		expect(output).toContain('[Error/skills(name-matches-directory)]');
 		expect(output).toContain('[Error/skills(max-skill-lines)]');
 		expect(output).toContain('[Error/skills(no-deep-references)]');
+		expect(output).toContain('[Error/skills(no-duplicate-skill-name)]');
 	});
 
 	test('scans configured skill roots', async () => {
