@@ -67,4 +67,46 @@ describe('Oxlint integration', () => {
 		expect(output).toContain('[Error/skills(no-deep-references)]');
 		expect(output).toContain('.agents/skills/demo/SKILL.md');
 	});
+
+	it('scans configured skill roots', async () => {
+		const cwd = await mkdtemp(join(tmpdir(), 'oxlint-plugin-skills-'));
+		temporaryDirectories.push(cwd);
+		await mkdir(join(cwd, 'company/skills/demo'), { recursive: true });
+		await writeFile(join(cwd, 'anchor.js'), 'const anchor = 1;\n');
+		await writeFile(
+			join(cwd, 'company/skills/demo/SKILL.md'),
+			`---
+name: demo
+---
+`,
+		);
+		await writeFile(
+			join(cwd, '.oxlintrc.json'),
+			JSON.stringify({
+				categories: { correctness: 'off' },
+				jsPlugins: [resolve('dist/index.js')],
+				rules: {
+					'skills/valid-frontmatter': ['error', { roots: ['company/skills'] }],
+				},
+			}),
+		);
+
+		const result = spawnSync(
+			process.execPath,
+			[
+				resolve('node_modules/oxlint/bin/oxlint'),
+				'--config',
+				'.oxlintrc.json',
+				'anchor.js',
+				'--format',
+				'unix',
+			],
+			{ cwd, encoding: 'utf8' },
+		);
+		const output = `${result.stdout}${result.stderr}`;
+
+		expect(result.status).toBe(1);
+		expect(output).toContain('company/skills/demo/SKILL.md:1');
+		expect(output).toContain('[Error/skills(valid-frontmatter)]');
+	});
 });
