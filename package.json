@@ -40,8 +40,10 @@
 		"test:watch": "vitest",
 		"typecheck": "tsc --noEmit"
 	},
+	"dependencies": {
+		"@oxlint/plugins": "1.70.0"
+	},
 	"devDependencies": {
-		"@oxlint/plugins": "1.70.0",
 		"@types/node": "24.10.4",
 		"oxfmt": "0.26.0",
 		"oxlint": "1.70.0",

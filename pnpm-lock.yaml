@@ -206,10 +206,11 @@ settings:
 importers:
 
   .:
-    devDependencies:
+    dependencies:
       '@oxlint/plugins':
         specifier: 1.70.0
         version: 1.70.0
+    devDependencies:
       '@types/node':
         specifier: 24.10.4
         version: 24.10.4
