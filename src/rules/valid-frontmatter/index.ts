@@ -8,7 +8,7 @@
  * - the document starts and ends its frontmatter with `---`;
  * - the YAML document is a mapping;
  * - `name` and `description` are present and have valid values;
- * - names use lowercase letters, numbers, and single hyphens;
+ * - names use Unicode lowercase letters, numbers, and single hyphens;
  * - names avoid the reserved `anthropic` and `claude` terms;
  * - optional `license`, `compatibility`, `metadata`, and `allowed-tools`
  *   values use their specified types and limits;
@@ -55,7 +55,14 @@ export interface ParsedFrontmatter {
 
 type Frontmatter = Record<string, unknown>;
 
-const NAME_PATTERN = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
+// The Agent Skills specification and the reference `skills-ref` validator allow
+// Unicode lowercase alphanumeric names, not just ASCII. Each hyphen-separated
+// segment must be one or more lowercase letters (`\p{Ll}`), caseless letters
+// from scripts without case such as CJK or Hiragana (`\p{Lo}`), modifier
+// letters (`\p{Lm}`), or decimal digits (`\p{Nd}`). Non-empty segments joined
+// by single hyphens forbid leading, trailing, and consecutive hyphens, while
+// excluding `\p{Lu}`/`\p{Lt}` keeps uppercase names invalid.
+const NAME_PATTERN = /^[\p{Ll}\p{Lo}\p{Lm}\p{Nd}]+(?:-[\p{Ll}\p{Lo}\p{Lm}\p{Nd}]+)*$/u;
 const XML_TAG_PATTERN = /<[^>]+>/;
 
 /**
@@ -298,6 +305,17 @@ if (import.meta.vitest) {
 
 		expect(issues.map(({ code }) => code)).toContain(expectedCode);
 	});
+
+	test.each(['数据分析', 'café-processing', 'обработка'])(
+		'accepts the Unicode lowercase name %s',
+		(name) => {
+			const issues = validateFrontmatter(
+				`---\nname: ${name}\ndescription: Does the thing. Use when the thing is needed.\n---\n\n# Body\n`,
+			);
+
+			expect(issues).toEqual([]);
+		},
+	);
 
 	test('validates optional field types', async () => {
 		const issues = validateFrontmatter(
