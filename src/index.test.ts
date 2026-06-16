@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import plugin from '../src/index.ts';
+import plugin from './index.ts';
 
 describe('plugin', () => {
 	it('exports the oxlint-plugin-skills JavaScript plugin', () => {

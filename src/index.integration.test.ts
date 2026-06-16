@@ -15,7 +15,7 @@ afterEach(async () => {
 	);
 });
 
-describe('Oxlint integration', () => {
+describe('oxlint-plugin-skills integration', () => {
 	it('reports Agent Skill violations through JavaScript plugin rules', async () => {
 		const cwd = await mkdtemp(join(tmpdir(), 'oxlint-plugin-skills-'));
 		temporaryDirectories.push(cwd);
