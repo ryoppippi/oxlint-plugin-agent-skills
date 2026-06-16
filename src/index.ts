@@ -1,5 +1,6 @@
 import { definePlugin } from '@oxlint/plugins';
 
+import { descriptionThirdPersonRule } from './rules/description-third-person/index.ts';
 import { maxSkillLinesRule } from './rules/max-skill-lines/index.ts';
 import { nameMatchesDirectoryRule } from './rules/name-matches-directory/index.ts';
 import { noDeepReferencesRule } from './rules/no-deep-references/index.ts';
@@ -14,6 +15,7 @@ const plugin = definePlugin({
 		name: 'oxlint-plugin-skills',
 	},
 	rules: {
+		'description-third-person': descriptionThirdPersonRule,
 		'max-skill-lines': maxSkillLinesRule,
 		'name-matches-directory': nameMatchesDirectoryRule,
 		'no-deep-references': noDeepReferencesRule,
@@ -43,6 +45,7 @@ if (import.meta.vitest) {
 	test('exports the oxlint-plugin-skills JavaScript plugin', () => {
 		expect(plugin.meta?.name).toBe('oxlint-plugin-skills');
 		expect(Object.keys(plugin.rules).sort()).toEqual([
+			'description-third-person',
 			'max-skill-lines',
 			'name-matches-directory',
 			'no-deep-references',
@@ -93,6 +96,10 @@ if (import.meta.vitest) {
 			'./rules/no-windows-paths/__fixture__/invalid/SKILL.md',
 			join(cwd, '.agents/skills/backslash-paths/SKILL.md'),
 		);
+		await copyFixture(
+			'./rules/description-third-person/__fixture__/invalid/SKILL.md',
+			join(cwd, '.agents/skills/first-person/SKILL.md'),
+		);
 		await writeFile(join(cwd, 'anchor.js'), 'const anchor = 1;\n');
 		await writeFile(
 			join(cwd, '.oxlintrc.json'),
@@ -100,6 +107,7 @@ if (import.meta.vitest) {
 				categories: { correctness: 'off' },
 				jsPlugins: [resolve('dist/index.js')],
 				rules: {
+					'skills/description-third-person': 'error',
 					'skills/max-skill-lines': 'error',
 					'skills/name-matches-directory': 'error',
 					'skills/no-deep-references': 'error',
@@ -135,6 +143,7 @@ if (import.meta.vitest) {
 		expect(output).toContain('[Error/skills(no-empty-skill-body)]');
 		expect(output).toContain('[Error/skills(skill-index-budget)]');
 		expect(output).toContain('[Error/skills(no-windows-paths)]');
+		expect(output).toContain('[Error/skills(description-third-person)]');
 	});
 
 	test('scans configured skill roots', async () => {
