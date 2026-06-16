@@ -1,0 +1,16 @@
+{
+	"compilerOptions": {
+		"declaration": true,
+		"erasableSyntaxOnly": true,
+		"exactOptionalPropertyTypes": true,
+		"lib": ["ES2024"],
+		"module": "NodeNext",
+		"moduleResolution": "NodeNext",
+		"noEmit": true,
+		"noUncheckedIndexedAccess": true,
+		"strict": true,
+		"target": "ES2024",
+		"verbatimModuleSyntax": true
+	},
+	"include": ["src", "test", "tsdown.config.ts", "vitest.config.ts"]
+}

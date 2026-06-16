@@ -1,20 +1,70 @@
 {
-  "name": "oxlint-plugin-skills",
-  "version": "0.0.0",
-  "description": "",
-  "main": "index.js",
-  "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
-  },
-  "keywords": [],
-  "author": "",
-  "license": "MIT",
-  "devEngines": {
-    "packageManager": {
-      "name": "pnpm",
-      "version": "^11.5.2",
-      "onFail": "download"
-    }
-  },
-  "type": "module"
+	"name": "oxlint-plugin-skills",
+	"version": "0.0.0",
+	"description": "Oxlint JavaScript plugin for validating Agent Skills against the Agent Skills specification and authoring best practices.",
+	"keywords": [
+		"agent-skills",
+		"claude-code",
+		"codex",
+		"lint",
+		"oxlint",
+		"oxlint-plugin"
+	],
+	"homepage": "https://github.com/ryoppippi/oxlint-plugin-skills#readme",
+	"bugs": "https://github.com/ryoppippi/oxlint-plugin-skills/issues",
+	"license": "MIT",
+	"author": "ryoppippi",
+	"repository": {
+		"type": "git",
+		"url": "git+https://github.com/ryoppippi/oxlint-plugin-skills.git"
+	},
+	"files": [
+		"dist"
+	],
+	"type": "module",
+	"main": "./dist/index.js",
+	"types": "./dist/index.d.ts",
+	"exports": {
+		".": {
+			"types": "./dist/index.d.ts",
+			"import": "./dist/index.js"
+		}
+	},
+	"scripts": {
+		"build": "tsdown",
+		"check": "pnpm run format:check && pnpm run lint && pnpm run typecheck && pnpm run test && pnpm run build",
+		"format": "oxfmt --write .",
+		"format:check": "oxfmt --check .",
+		"lint": "oxlint --deny-warnings .",
+		"test": "vitest run",
+		"test:watch": "vitest",
+		"typecheck": "tsc --noEmit"
+	},
+	"devDependencies": {
+		"@oxlint/plugins": "1.70.0",
+		"@types/node": "24.10.4",
+		"oxfmt": "0.26.0",
+		"oxlint": "1.70.0",
+		"tsdown": "0.16.7",
+		"typescript": "5.9.3",
+		"vitest": "4.0.16"
+	},
+	"peerDependencies": {
+		"oxlint": ">=1.70.0"
+	},
+	"peerDependenciesMeta": {
+		"oxlint": {
+			"optional": true
+		}
+	},
+	"devEngines": {
+		"packageManager": {
+			"name": "pnpm",
+			"version": "^11.5.2",
+			"onFail": "download"
+		}
+	},
+	"engines": {
+		"node": ">=22.13"
+	}
 }
