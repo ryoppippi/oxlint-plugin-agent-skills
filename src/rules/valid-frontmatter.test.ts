@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import { validateFrontmatter } from './frontmatter.ts';
+import { validateFrontmatter } from './valid-frontmatter.ts';
 
 describe('validateFrontmatter', () => {
 	it('accepts valid Agent Skill frontmatter', () => {

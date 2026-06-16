@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import { validateDirectoryName } from './name.ts';
+import { validateDirectoryName } from './name-matches-directory.ts';
 
 describe('validateDirectoryName', () => {
 	it('accepts a name matching the skill directory', () => {

@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import { validateSkillLength } from './length.ts';
+import { validateSkillLength } from './max-skill-lines.ts';
 
 describe('validateSkillLength', () => {
 	it('accepts a SKILL.md with 500 lines', () => {

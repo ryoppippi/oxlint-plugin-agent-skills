@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import { validateReferenceDepth } from './references.ts';
+import { validateReferenceDepth } from './no-deep-references.ts';
 
 describe('validateReferenceDepth', () => {
 	it('accepts top-level and one-directory references', () => {

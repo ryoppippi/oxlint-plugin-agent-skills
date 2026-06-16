@@ -1,4 +1,30 @@
+/**
+ * Implements `skills/valid-frontmatter`.
+ *
+ * Agent Skills use YAML frontmatter as their discovery contract. This rule
+ * parses that frontmatter with a YAML parser and validates the portable fields
+ * defined by the Agent Skills specification:
+ *
+ * - the document starts and ends its frontmatter with `---`;
+ * - the YAML document is a mapping;
+ * - `name` and `description` are present and have valid values;
+ * - names use lowercase letters, numbers, and single hyphens;
+ * - names avoid the reserved `anthropic` and `claude` terms;
+ * - optional `license`, `compatibility`, `metadata`, and `allowed-tools`
+ *   values use their specified types and limits;
+ * - names and descriptions do not contain XML tags.
+ *
+ * Unknown extension fields remain valid so tools can add metadata such as
+ * `paths` or `globs` without making the skill incompatible with this plugin.
+ * Parser locations are translated from frontmatter-relative positions to
+ * actual SKILL.md lines before diagnostics are reported.
+ *
+ * @see https://agentskills.io/specification
+ * @see https://platform.claude.com/docs/en/agents-and-tools/agent-skills/best-practices
+ */
 import { parseDocument } from 'yaml';
+
+import { createSkillRule } from './rule.ts';
 
 export type FrontmatterIssueCode =
 	| 'invalid-allowed-tools'
@@ -31,6 +57,15 @@ type Frontmatter = Record<string, unknown>;
 
 const NAME_PATTERN = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
 const XML_TAG_PATTERN = /<[^>]+>/;
+
+/**
+ * Oxlint rule that validates the YAML discovery metadata in every SKILL.md
+ * found under the configured skill roots.
+ */
+export const validFrontmatterRule = createSkillRule(
+	'Validate Agent Skill YAML frontmatter.',
+	(_filePath, source) => validateFrontmatter(source),
+);
 
 export function validateFrontmatter(source: string): FrontmatterIssue[] {
 	const parsed = parseFrontmatter(source);

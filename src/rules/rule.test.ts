@@ -4,7 +4,7 @@ import { join } from 'node:path';
 
 import { afterEach, describe, expect, it } from 'vitest';
 
-import { discoverSkillFiles } from './skills.ts';
+import { discoverSkillFiles } from './rule.ts';
 
 const temporaryDirectories: string[] = [];
 

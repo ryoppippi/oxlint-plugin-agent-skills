@@ -1,4 +1,26 @@
+/**
+ * Implements `skills/no-deep-references`.
+ *
+ * Agent Skill authoring guidance recommends linking supporting files no more
+ * than one directory below SKILL.md. Shallow references make the skill easier
+ * for an agent to navigate and avoid chains of documents that hide essential
+ * instructions several levels away from the entry point.
+ *
+ * Markdown is parsed into an mdast tree so links, images, and definitions are
+ * checked structurally. Link-looking text inside fenced code blocks is not a
+ * reference and is therefore ignored. Absolute paths, fragments, protocol
+ * URLs, and protocol-relative URLs are also outside this repository-relative
+ * depth rule.
+ *
+ * Direct files such as `FORMS.md` and one-directory paths such as
+ * `references/api.md` are accepted. Paths with more segments or any `..`
+ * traversal are reported at the Markdown node's starting line.
+ *
+ * @see https://platform.claude.com/docs/en/agents-and-tools/agent-skills/best-practices
+ */
 import { fromMarkdown } from 'mdast-util-from-markdown';
+
+import { createSkillRule } from './rule.ts';
 
 export interface ReferenceDepthIssue {
 	line: number;
@@ -15,6 +37,15 @@ interface MarkdownNode {
 	type?: unknown;
 	url?: unknown;
 }
+
+/**
+ * Oxlint rule that rejects relative skill references deeper than one
+ * directory below SKILL.md.
+ */
+export const noDeepReferencesRule = createSkillRule(
+	'Keep SKILL.md file references at most one directory deep.',
+	(_filePath, source) => validateReferenceDepth(source),
+);
 
 export function validateReferenceDepth(source: string): ReferenceDepthIssue[] {
 	const issues: ReferenceDepthIssue[] = [];
