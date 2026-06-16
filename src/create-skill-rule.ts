@@ -52,7 +52,12 @@ export type AggregateSkillValidator = (
 	option: unknown,
 ) => readonly AggregateSkillIssue[];
 
-export const DEFAULT_SKILL_ROOTS = ['.agents/skills', 'agents/skills', 'skills'] as const;
+export const DEFAULT_SKILL_ROOTS = [
+	'.agent/skills',
+	'.agents/skills',
+	'agents/skills',
+	'skills',
+] as const;
 
 const ROOTS_OPTION_SCHEMA = {
 	items: {
@@ -258,6 +263,7 @@ if (import.meta.vitest) {
 		const cwd = fileURLToPath(new URL('./__fixture__/discovery', import.meta.url));
 
 		expect(discoverSkillFiles(cwd)).toEqual([
+			join(cwd, '.agent/skills/formatting/SKILL.md'),
 			join(cwd, '.agents/skills/commit/SKILL.md'),
 			join(cwd, 'agents/skills/testing/SKILL.md'),
 		]);

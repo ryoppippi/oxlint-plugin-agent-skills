@@ -33,6 +33,7 @@ name.
 By default, each rule scans these paths relative to the Oxlint working
 directory:
 
+- `.agent/skills`
 - `.agents/skills`
 - `agents/skills`
 - `skills`
