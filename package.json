@@ -42,6 +42,7 @@
 	},
 	"dependencies": {
 		"@oxlint/plugins": "1.70.0",
+		"mdast-util-from-markdown": "2.0.3",
 		"yaml": "2.9.0"
 	},
 	"devDependencies": {
