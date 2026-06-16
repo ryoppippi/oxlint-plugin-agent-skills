@@ -1,5 +1,5 @@
 {
-	"name": "oxlint-plugin-skills",
+	"name": "oxlint-plugin-agent-skills",
 	"version": "0.1.0",
 	"description": "Oxlint JavaScript plugin for validating Agent Skills against the Agent Skills specification and authoring best practices.",
 	"keywords": [
@@ -10,13 +10,13 @@
 		"oxlint",
 		"oxlint-plugin"
 	],
-	"homepage": "https://github.com/ryoppippi/oxlint-plugin-skills#readme",
-	"bugs": "https://github.com/ryoppippi/oxlint-plugin-skills/issues",
+	"homepage": "https://github.com/ryoppippi/oxlint-plugin-agent-skills#readme",
+	"bugs": "https://github.com/ryoppippi/oxlint-plugin-agent-skills/issues",
 	"license": "MIT",
 	"author": "ryoppippi",
 	"repository": {
 		"type": "git",
-		"url": "git+https://github.com/ryoppippi/oxlint-plugin-skills.git"
+		"url": "git+https://github.com/ryoppippi/oxlint-plugin-agent-skills.git"
 	},
 	"files": [
 		"dist",

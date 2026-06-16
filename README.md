@@ -1,4 +1,4 @@
-# oxlint-plugin-skills
+# oxlint-plugin-agent-skills
 
 Oxlint JavaScript plugin for validating
 [Agent Skills](https://agentskills.io/specification) and Claude skill authoring
@@ -7,14 +7,14 @@ conventions.
 ## Install
 
 ```sh
-pnpm add -D oxlint oxlint-plugin-skills
+pnpm add -D oxlint oxlint-plugin-agent-skills
 ```
 
 ## Configure
 
 ```jsonc
 {
-	"jsPlugins": ["oxlint-plugin-skills"],
+	"jsPlugins": ["oxlint-plugin-agent-skills"],
 	"rules": {
 		"skills/valid-frontmatter": "error",
 		"skills/name-matches-directory": "error",
@@ -31,8 +31,8 @@ pnpm add -D oxlint oxlint-plugin-skills
 }
 ```
 
-Oxlint derives the `skills` namespace from the `oxlint-plugin-skills` package
-name.
+This plugin registers its rules under the `skills` namespace, so each rule is
+referenced as `skills/<rule>` regardless of the package name.
 
 By default, each rule scans these paths relative to the Oxlint working
 directory:
