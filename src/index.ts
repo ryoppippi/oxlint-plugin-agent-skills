@@ -4,6 +4,7 @@ import { maxSkillLinesRule } from './rules/max-skill-lines/index.ts';
 import { nameMatchesDirectoryRule } from './rules/name-matches-directory/index.ts';
 import { noDeepReferencesRule } from './rules/no-deep-references/index.ts';
 import { noDuplicateSkillNameRule } from './rules/no-duplicate-skill-name/index.ts';
+import { noEmptySkillBodyRule } from './rules/no-empty-skill-body/index.ts';
 import { validFrontmatterRule } from './rules/valid-frontmatter/index.ts';
 
 const plugin = definePlugin({
@@ -15,6 +16,7 @@ const plugin = definePlugin({
 		'name-matches-directory': nameMatchesDirectoryRule,
 		'no-deep-references': noDeepReferencesRule,
 		'no-duplicate-skill-name': noDuplicateSkillNameRule,
+		'no-empty-skill-body': noEmptySkillBodyRule,
 		'valid-frontmatter': validFrontmatterRule,
 	},
 });
@@ -41,6 +43,7 @@ if (import.meta.vitest) {
 			'name-matches-directory',
 			'no-deep-references',
 			'no-duplicate-skill-name',
+			'no-empty-skill-body',
 			'valid-frontmatter',
 		]);
 	});
@@ -76,6 +79,10 @@ if (import.meta.vitest) {
 			'./rules/no-duplicate-skill-name/__fixture__/invalid/b/code-review/SKILL.md',
 			join(cwd, 'agents/skills/code-review/SKILL.md'),
 		);
+		await copyFixture(
+			'./rules/no-empty-skill-body/__fixture__/invalid/SKILL.md',
+			join(cwd, '.agents/skills/empty-body/SKILL.md'),
+		);
 		await writeFile(join(cwd, 'anchor.js'), 'const anchor = 1;\n');
 		await writeFile(
 			join(cwd, '.oxlintrc.json'),
@@ -87,6 +94,7 @@ if (import.meta.vitest) {
 					'skills/name-matches-directory': 'error',
 					'skills/no-deep-references': 'error',
 					'skills/no-duplicate-skill-name': 'error',
+					'skills/no-empty-skill-body': 'error',
 					'skills/valid-frontmatter': 'error',
 				},
 			}),
@@ -112,6 +120,7 @@ if (import.meta.vitest) {
 		expect(output).toContain('[Error/skills(max-skill-lines)]');
 		expect(output).toContain('[Error/skills(no-deep-references)]');
 		expect(output).toContain('[Error/skills(no-duplicate-skill-name)]');
+		expect(output).toContain('[Error/skills(no-empty-skill-body)]');
 	});
 
 	test('scans configured skill roots', async () => {
