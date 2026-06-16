@@ -29,11 +29,28 @@ export interface SkillIssue {
 	message: string;
 }
 
+export interface DiscoveredSkill {
+	displayPath: string;
+	filePath: string;
+	source: string;
+}
+
+export interface AggregateSkillIssue {
+	filePath: string;
+	line: number;
+	message: string;
+}
+
 export type SkillValidator = (
 	filePath: string,
 	source: string,
 	option: unknown,
 ) => SkillIssue | readonly SkillIssue[] | undefined;
+
+export type AggregateSkillValidator = (
+	skills: readonly DiscoveredSkill[],
+	option: unknown,
+) => readonly AggregateSkillIssue[];
 
 export const DEFAULT_SKILL_ROOTS = ['.agents/skills', 'agents/skills', 'skills'] as const;
 
@@ -54,10 +71,21 @@ interface IntegerOptionSchema {
 
 type SkillRuleOptionSchema = IntegerOptionSchema | typeof ROOTS_OPTION_SCHEMA;
 
-export function createSkillRule(
+/**
+ * Builds an Oxlint rule whose validator sees every discovered skill at once.
+ *
+ * This is the shared core behind both factories. The per-file
+ * {@link createSkillRule} adapts its validator onto this contract, while
+ * {@link createAggregateSkillRule} forwards a validator straight through so it
+ * can reason about relationships between skills (for example, duplicate names).
+ *
+ * Each emitted issue carries its own `filePath`, so a single Program pass can
+ * report findings against many different SKILL.md files.
+ */
+function createRule(
 	description: string,
-	validate: SkillValidator,
-	optionProperties: Readonly<Record<string, SkillRuleOptionSchema>> = {},
+	validate: AggregateSkillValidator,
+	optionProperties: Readonly<Record<string, SkillRuleOptionSchema>>,
 ) {
 	const signatures = new Map<string, string>();
 
@@ -86,7 +114,8 @@ export function createSkillRule(
 					const roots = readRoots(option);
 					const cacheKey = `${context.cwd}\0${JSON.stringify(option)}\0${roots.join('\0')}`;
 					const skillFiles = discoverSkillFiles(context.cwd, roots);
-					const skills = skillFiles.map((filePath) => ({
+					const skills: DiscoveredSkill[] = skillFiles.map((filePath) => ({
+						displayPath: displayPath(context.cwd, filePath),
 						filePath,
 						source: readFileSync(filePath, 'utf8'),
 					}));
@@ -100,21 +129,56 @@ export function createSkillRule(
 
 					signatures.set(cacheKey, signature);
 
-					for (const skill of skills) {
-						const result = validate(skill.filePath, skill.source, option);
-						const issues = result === undefined ? [] : Array.isArray(result) ? result : [result];
-
-						for (const issue of issues) {
-							context.report({
-								message: `${displayPath(context.cwd, skill.filePath)}:${issue.line} ${issue.message}`,
-								node,
-							});
-						}
+					for (const issue of validate(skills, option)) {
+						context.report({
+							message: `${displayPath(context.cwd, issue.filePath)}:${issue.line} ${issue.message}`,
+							node,
+						});
 					}
 				},
 			};
 		},
 	});
+}
+
+/**
+ * Creates a repository-scoped rule that validates each SKILL.md independently.
+ */
+export function createSkillRule(
+	description: string,
+	validate: SkillValidator,
+	optionProperties: Readonly<Record<string, SkillRuleOptionSchema>> = {},
+) {
+	return createRule(
+		description,
+		(skills, option) => {
+			const issues: AggregateSkillIssue[] = [];
+
+			for (const skill of skills) {
+				const result = validate(skill.filePath, skill.source, option);
+				const found = result === undefined ? [] : Array.isArray(result) ? result : [result];
+
+				for (const issue of found) {
+					issues.push({ filePath: skill.filePath, line: issue.line, message: issue.message });
+				}
+			}
+
+			return issues;
+		},
+		optionProperties,
+	);
+}
+
+/**
+ * Creates a repository-scoped rule that validates all discovered skills
+ * together, enabling checks that depend on more than one SKILL.md.
+ */
+export function createAggregateSkillRule(
+	description: string,
+	validate: AggregateSkillValidator,
+	optionProperties: Readonly<Record<string, SkillRuleOptionSchema>> = {},
+) {
+	return createRule(description, validate, optionProperties);
 }
 
 export function discoverSkillFiles(
