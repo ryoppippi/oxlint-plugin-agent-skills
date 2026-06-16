@@ -1,7 +1,7 @@
 import { readdirSync } from 'node:fs';
 import { join, resolve } from 'node:path';
 
-const DEFAULT_SKILL_ROOTS = ['.agents/skills', 'agents/skills', 'skills'] as const;
+export const DEFAULT_SKILL_ROOTS = ['.agents/skills', 'agents/skills', 'skills'] as const;
 
 export function discoverSkillFiles(
 	cwd: string,
