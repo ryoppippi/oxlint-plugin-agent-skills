@@ -54,12 +54,17 @@ location.
 
 ## Rules
 
-| Rule                            | Checks                                                                                                              |
-| ------------------------------- | ------------------------------------------------------------------------------------------------------------------- |
-| `skills/valid-frontmatter`      | Valid YAML, required `name` and `description`, field lengths and types, naming syntax, XML tags, and reserved names |
-| `skills/name-matches-directory` | Frontmatter `name` matches the directory containing `SKILL.md`                                                      |
-| `skills/max-skill-lines`        | `SKILL.md` contains no more than 500 lines                                                                          |
-| `skills/no-deep-references`     | Relative Markdown links, images, and definitions point no deeper than one directory below `SKILL.md`                |
+| Rule                                                                          | Checks                                                                                                              |
+| ----------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------- |
+| [`skills/valid-frontmatter`](src/rules/valid-frontmatter/README.md)           | Valid YAML, required `name` and `description`, field lengths and types, naming syntax, XML tags, and reserved names |
+| [`skills/name-matches-directory`](src/rules/name-matches-directory/README.md) | Frontmatter `name` matches the directory containing `SKILL.md`                                                      |
+| [`skills/max-skill-lines`](src/rules/max-skill-lines/README.md)               | `SKILL.md` contains no more than 220 lines                                                                          |
+| [`skills/no-deep-references`](src/rules/no-deep-references/README.md)         | Relative Markdown links, images, and definitions point no deeper than one directory below `SKILL.md`                |
+
+The 220-line limit is an operational safeguard based on a
+[community analysis of Codex skill reads](https://www.reddit.com/r/codex/comments/1t1rbqt/codex_may_only_read_the_first_220_lines_of_a/).
+The observed median initial read was 220 lines across several model
+configurations; this is not an Agent Skills specification limit.
 
 Diagnostics are attached to the JavaScript or TypeScript file Oxlint is
 visiting, while each message starts with the actual `SKILL.md` path and line:
@@ -76,6 +81,7 @@ scan the configured skill roots.
 
 - [Agent Skills specification](https://agentskills.io/specification)
 - [Claude skill authoring best practices](https://platform.claude.com/docs/en/agents-and-tools/agent-skills/best-practices)
+- [Codex 220-line skill read analysis](https://www.reddit.com/r/codex/comments/1t1rbqt/codex_may_only_read_the_first_220_lines_of_a/)
 - [Oxlint JavaScript plugins](https://oxc.rs/docs/guide/usage/linter/js-plugins)
 
 ## License
