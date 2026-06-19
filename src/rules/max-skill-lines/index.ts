@@ -70,12 +70,24 @@ function readMaxLines(option: unknown): number {
 }
 
 if (import.meta.vitest) {
-	test('accepts a SKILL.md with 220 lines', () => {
-		expect(validateSkillLength(Array(220).fill('line').join('\n'))).toBeUndefined();
+	test('accepts a SKILL.md with 220 lines', async () => {
+		const { createFixture } = await import('fs-fixture');
+		const { fileURLToPath } = await import('node:url');
+		await using fixture = await createFixture(
+			fileURLToPath(new URL('./__fixture__/valid', import.meta.url)),
+		);
+
+		expect(validateSkillLength(await fixture.readFile('SKILL.md', 'utf8'))).toBeUndefined();
 	});
 
-	test('reports a SKILL.md with more than 220 lines', () => {
-		expect(validateSkillLength(Array(221).fill('line').join('\n'))).toEqual({
+	test('reports a SKILL.md with more than 220 lines', async () => {
+		const { createFixture } = await import('fs-fixture');
+		const { fileURLToPath } = await import('node:url');
+		await using fixture = await createFixture(
+			fileURLToPath(new URL('./__fixture__/invalid', import.meta.url)),
+		);
+
+		expect(validateSkillLength(await fixture.readFile('SKILL.md', 'utf8'))).toEqual({
 			line: 221,
 			message:
 				'SKILL.md has 221 lines; keep it at or below 220 lines and move details into referenced files.',
@@ -83,10 +95,10 @@ if (import.meta.vitest) {
 	});
 
 	test('uses a configured line limit', () => {
-		expect(validateSkillLength(Array(220).fill('line').join('\n'), 219)).toEqual({
-			line: 220,
+		expect(validateSkillLength('first\nsecond\nthird', 2)).toEqual({
+			line: 3,
 			message:
-				'SKILL.md has 220 lines; keep it at or below 219 lines and move details into referenced files.',
+				'SKILL.md has 3 lines; keep it at or below 2 lines and move details into referenced files.',
 		});
 	});
 }
