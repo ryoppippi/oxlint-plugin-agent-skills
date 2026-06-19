@@ -1,8 +1,10 @@
 import { definePlugin } from '@oxlint/plugins';
 
 import { descriptionThirdPersonRule } from './rules/description-third-person/index.ts';
+import { longReferenceHasTocRule } from './rules/long-reference-has-toc/index.ts';
 import { maxSkillLinesRule } from './rules/max-skill-lines/index.ts';
 import { nameMatchesDirectoryRule } from './rules/name-matches-directory/index.ts';
+import { noBrokenLocalReferencesRule } from './rules/no-broken-local-references/index.ts';
 import { noDeepReferencesRule } from './rules/no-deep-references/index.ts';
 import { noDuplicateSkillNameRule } from './rules/no-duplicate-skill-name/index.ts';
 import { noEmptySkillBodyRule } from './rules/no-empty-skill-body/index.ts';
@@ -10,6 +12,7 @@ import { noUnknownFrontmatterFieldsRule } from './rules/no-unknown-frontmatter-f
 import { noWindowsPathsRule } from './rules/no-windows-paths/index.ts';
 import { skillIndexBudgetRule } from './rules/skill-index-budget/index.ts';
 import { validFrontmatterRule } from './rules/valid-frontmatter/index.ts';
+import { validOpenAiMetadataRule } from './rules/valid-openai-metadata/index.ts';
 
 const plugin = definePlugin({
 	meta: {
@@ -17,8 +20,10 @@ const plugin = definePlugin({
 	},
 	rules: {
 		'description-third-person': descriptionThirdPersonRule,
+		'long-reference-has-toc': longReferenceHasTocRule,
 		'max-skill-lines': maxSkillLinesRule,
 		'name-matches-directory': nameMatchesDirectoryRule,
+		'no-broken-local-references': noBrokenLocalReferencesRule,
 		'no-deep-references': noDeepReferencesRule,
 		'no-duplicate-skill-name': noDuplicateSkillNameRule,
 		'no-empty-skill-body': noEmptySkillBodyRule,
@@ -26,6 +31,7 @@ const plugin = definePlugin({
 		'no-windows-paths': noWindowsPathsRule,
 		'skill-index-budget': skillIndexBudgetRule,
 		'valid-frontmatter': validFrontmatterRule,
+		'valid-openai-metadata': validOpenAiMetadataRule,
 	},
 });
 
@@ -48,8 +54,10 @@ if (import.meta.vitest) {
 		expect(plugin.meta?.name).toBe('oxlint-plugin-skills');
 		expect(Object.keys(plugin.rules).sort()).toEqual([
 			'description-third-person',
+			'long-reference-has-toc',
 			'max-skill-lines',
 			'name-matches-directory',
+			'no-broken-local-references',
 			'no-deep-references',
 			'no-duplicate-skill-name',
 			'no-empty-skill-body',
@@ -57,11 +65,12 @@ if (import.meta.vitest) {
 			'no-windows-paths',
 			'skill-index-budget',
 			'valid-frontmatter',
+			'valid-openai-metadata',
 		]);
 	});
 
 	test('reports Agent Skill violations through JavaScript plugin rules', async () => {
-		const { mkdtemp, writeFile } = await import('node:fs/promises');
+		const { mkdir, mkdtemp, writeFile } = await import('node:fs/promises');
 		const { tmpdir } = await import('node:os');
 		const { join, resolve } = await import('node:path');
 		const { spawnSync } = await import('node:child_process');
@@ -107,6 +116,28 @@ if (import.meta.vitest) {
 			'./rules/no-unknown-frontmatter-fields/__fixture__/invalid/SKILL.md',
 			join(cwd, '.agents/skills/typo-field/SKILL.md'),
 		);
+		await copyFixture(
+			'./rules/no-deep-references/__fixture__/valid/shallow/SKILL.md',
+			join(cwd, '.agents/skills/broken-reference/SKILL.md'),
+		);
+		await copyFixture(
+			'./rules/no-deep-references/__fixture__/valid/shallow/SKILL.md',
+			join(cwd, '.agents/skills/long-reference/SKILL.md'),
+		);
+		await mkdir(join(cwd, '.agents/skills/long-reference/references'), { recursive: true });
+		await writeFile(
+			join(cwd, '.agents/skills/long-reference/references/api.md'),
+			Array(101).fill('content').join('\n'),
+		);
+		await copyFixture(
+			'./rules/no-deep-references/__fixture__/valid/shallow/SKILL.md',
+			join(cwd, '.agents/skills/openai-metadata/SKILL.md'),
+		);
+		await mkdir(join(cwd, '.agents/skills/openai-metadata/agents'), { recursive: true });
+		await writeFile(
+			join(cwd, '.agents/skills/openai-metadata/agents/openai.yaml'),
+			'interface:\n  brand_color: blue\n',
+		);
 		await writeFile(join(cwd, 'anchor.js'), 'const anchor = 1;\n');
 		await writeFile(
 			join(cwd, '.oxlintrc.json'),
@@ -115,8 +146,10 @@ if (import.meta.vitest) {
 				jsPlugins: [resolve('dist/index.js')],
 				rules: {
 					'skills/description-third-person': 'error',
+					'skills/long-reference-has-toc': 'error',
 					'skills/max-skill-lines': 'error',
 					'skills/name-matches-directory': 'error',
+					'skills/no-broken-local-references': 'error',
 					'skills/no-deep-references': 'error',
 					'skills/no-duplicate-skill-name': 'error',
 					'skills/no-empty-skill-body': 'error',
@@ -124,6 +157,7 @@ if (import.meta.vitest) {
 					'skills/no-windows-paths': 'error',
 					'skills/skill-index-budget': ['error', { maxCharacters: 1 }],
 					'skills/valid-frontmatter': 'error',
+					'skills/valid-openai-metadata': 'error',
 				},
 			}),
 		);
@@ -153,6 +187,9 @@ if (import.meta.vitest) {
 		expect(output).toContain('[Error/skills(no-windows-paths)]');
 		expect(output).toContain('[Error/skills(description-third-person)]');
 		expect(output).toContain('[Error/skills(no-unknown-frontmatter-fields)]');
+		expect(output).toContain('[Error/skills(no-broken-local-references)]');
+		expect(output).toContain('[Error/skills(long-reference-has-toc)]');
+		expect(output).toContain('[Error/skills(valid-openai-metadata)]');
 	});
 
 	test('scans configured skill roots', async () => {

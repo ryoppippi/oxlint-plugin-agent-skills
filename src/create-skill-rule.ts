@@ -19,7 +19,7 @@
  * standard Agent Skill locations `.agents/skills`, `agents/skills`, and
  * `skills`, relative to Oxlint's working directory.
  */
-import { readdirSync, readFileSync } from 'node:fs';
+import { readdirSync, readFileSync, realpathSync, statSync } from 'node:fs';
 import { join, relative, resolve, sep } from 'node:path';
 
 import { defineRule } from '@oxlint/plugins';
@@ -74,7 +74,11 @@ interface IntegerOptionSchema {
 	type: 'integer';
 }
 
-type SkillRuleOptionSchema = IntegerOptionSchema | typeof ROOTS_OPTION_SCHEMA;
+interface BooleanOptionSchema {
+	type: 'boolean';
+}
+
+type SkillRuleOptionSchema = BooleanOptionSchema | IntegerOptionSchema | typeof ROOTS_OPTION_SCHEMA;
 
 /**
  * Builds an Oxlint rule whose validator sees every discovered skill at once.
@@ -199,9 +203,11 @@ export function discoverSkillFiles(
 	roots: readonly string[] = DEFAULT_SKILL_ROOTS,
 ): string[] {
 	const skillFiles: string[] = [];
+	const visitedDirectories = new Set<string>();
+	const visitedFiles = new Set<string>();
 
 	for (const root of roots) {
-		visitDirectory(resolve(cwd, root), skillFiles);
+		visitDirectory(resolve(cwd, root), skillFiles, visitedDirectories, visitedFiles);
 	}
 
 	return skillFiles.sort();
@@ -225,10 +231,23 @@ function displayPath(cwd: string, filePath: string): string {
 	return relative(cwd, filePath).split(sep).join('/');
 }
 
-function visitDirectory(directory: string, skillFiles: string[]): void {
+function visitDirectory(
+	directory: string,
+	skillFiles: string[],
+	visitedDirectories: Set<string>,
+	visitedFiles: Set<string>,
+): void {
 	let entries;
+	let realDirectory;
 
 	try {
+		realDirectory = realpathSync(directory);
+
+		if (visitedDirectories.has(realDirectory)) {
+			return;
+		}
+
+		visitedDirectories.add(realDirectory);
 		entries = readdirSync(directory, { withFileTypes: true });
 	} catch (error) {
 		if (isMissingDirectoryError(error)) {
@@ -240,11 +259,32 @@ function visitDirectory(directory: string, skillFiles: string[]): void {
 
 	for (const entry of entries) {
 		const path = join(directory, entry.name);
+		let isDirectory = entry.isDirectory();
+		let isFile = entry.isFile();
 
-		if (entry.isDirectory()) {
-			visitDirectory(path, skillFiles);
-		} else if (entry.isFile() && entry.name === 'SKILL.md') {
-			skillFiles.push(path);
+		if (entry.isSymbolicLink()) {
+			try {
+				const target = statSync(path);
+				isDirectory = target.isDirectory();
+				isFile = target.isFile();
+			} catch (error) {
+				if (isMissingDirectoryError(error)) {
+					continue;
+				}
+
+				throw error;
+			}
+		}
+
+		if (isDirectory) {
+			visitDirectory(path, skillFiles, visitedDirectories, visitedFiles);
+		} else if (isFile && entry.name === 'SKILL.md') {
+			const realFile = realpathSync(path);
+
+			if (!visitedFiles.has(realFile)) {
+				visitedFiles.add(realFile);
+				skillFiles.push(path);
+			}
 		}
 	}
 }
