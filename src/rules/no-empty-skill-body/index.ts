@@ -56,12 +56,16 @@ export function validateSkillBody(source: string): SkillBodyIssue | undefined {
 }
 
 if (import.meta.vitest) {
-	test('accepts a SKILL.md with body instructions', async () => {
-		expect(validateSkillBody(await readFixture('./__fixture__/valid/SKILL.md'))).toBeUndefined();
+	test('accepts a SKILL.md with body instructions', () => {
+		expect(
+			validateSkillBody(
+				'---\nname: with-body\ndescription: Does the thing.\n---\n\n# Instructions\n',
+			),
+		).toBeUndefined();
 	});
 
-	test('reports a SKILL.md with only frontmatter', async () => {
-		expect(validateSkillBody(await readFixture('./__fixture__/invalid/SKILL.md'))).toEqual({
+	test('reports a SKILL.md with only frontmatter', () => {
+		expect(validateSkillBody('---\nname: empty\ndescription: Empty.\n---\n')).toEqual({
 			line: 4,
 			message: 'SKILL.md has no body; add instructions after the closing --- delimiter.',
 		});
@@ -70,12 +74,4 @@ if (import.meta.vitest) {
 	test('stays silent when frontmatter is missing', () => {
 		expect(validateSkillBody('# No frontmatter here\n')).toBeUndefined();
 	});
-
-	async function readFixture(path: string): Promise<string> {
-		const { createFixture } = await import('fs-fixture');
-		const { fileURLToPath } = await import('node:url');
-		const url = new URL(path, import.meta.url);
-		await using fixture = await createFixture(fileURLToPath(new URL('.', url)));
-		return fixture.readFile('SKILL.md', 'utf8');
-	}
 }

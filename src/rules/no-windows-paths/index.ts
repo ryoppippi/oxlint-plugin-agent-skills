@@ -14,24 +14,12 @@
  *
  * @see https://platform.claude.com/docs/en/agents-and-tools/agent-skills/best-practices
  */
-import { fromMarkdown } from 'mdast-util-from-markdown';
-
 import { createSkillRule } from '../../create-skill-rule.ts';
+import { collectLocalMarkdownReferences } from '../../markdown-references.ts';
 
 export interface WindowsPathIssue {
 	line: number;
 	message: string;
-}
-
-interface MarkdownNode {
-	children?: unknown;
-	position?: {
-		start?: {
-			line?: unknown;
-		};
-	};
-	type?: unknown;
-	url?: unknown;
 }
 
 /**
@@ -43,62 +31,23 @@ export const noWindowsPathsRule = createSkillRule(
 );
 
 export function validateWindowsPaths(source: string): WindowsPathIssue[] {
-	const issues: WindowsPathIssue[] = [];
-	visitNode(fromMarkdown(source), issues);
-	return issues;
-}
-
-function visitNode(node: unknown, issues: WindowsPathIssue[]): void {
-	if (!isMarkdownNode(node)) {
-		return;
-	}
-
-	if (
-		(node.type === 'link' || node.type === 'image' || node.type === 'definition') &&
-		typeof node.url === 'string' &&
-		isBackslashRelativeReference(node.url)
-	) {
-		issues.push({
-			line: typeof node.position?.start?.line === 'number' ? node.position.start.line : 1,
-			message: `Reference "${node.url}" uses a Windows-style path; use forward slashes (/) in skill file references.`,
-		});
-	}
-
-	if (Array.isArray(node.children)) {
-		for (const child of node.children) {
-			visitNode(child, issues);
-		}
-	}
-}
-
-function isBackslashRelativeReference(url: string): boolean {
-	// Leave protocol URLs (including Windows drive letters like `C:\`), absolute
-	// paths, and fragments to other rules; only relative references are in scope.
-	if (
-		url.startsWith('#') ||
-		url.startsWith('/') ||
-		url.startsWith('//') ||
-		/^[a-z][a-z\d+.-]*:/i.test(url)
-	) {
-		return false;
-	}
-
-	return url.includes('\\');
-}
-
-function isMarkdownNode(value: unknown): value is MarkdownNode {
-	return typeof value === 'object' && value !== null;
+	return collectLocalMarkdownReferences(source)
+		.filter(({ url }) => url.includes('\\'))
+		.map(({ line, url }) => ({
+			line,
+			message: `Reference "${url}" uses a Windows-style path; use forward slashes (/) in skill file references.`,
+		}));
 }
 
 if (import.meta.vitest) {
-	test('accepts forward-slash references', async () => {
-		expect(validateWindowsPaths(await readFixture('./__fixture__/valid/SKILL.md'))).toEqual([]);
+	test('accepts forward-slash references', () => {
+		expect(validateWindowsPaths('See [the helper](scripts/helper.py).\n')).toEqual([]);
 	});
 
-	test('reports a backslash reference target', async () => {
-		expect(validateWindowsPaths(await readFixture('./__fixture__/invalid/SKILL.md'))).toEqual([
+	test('reports a backslash reference target', () => {
+		expect(validateWindowsPaths('See [the helper](scripts\\helper.py).\n')).toEqual([
 			{
-				line: 7,
+				line: 1,
 				message:
 					'Reference "scripts\\helper.py" uses a Windows-style path; use forward slashes (/) in skill file references.',
 			},
@@ -111,12 +60,4 @@ if (import.meta.vitest) {
 
 		expect(validateWindowsPaths(source)).toEqual([]);
 	});
-
-	async function readFixture(path: string): Promise<string> {
-		const { createFixture } = await import('fs-fixture');
-		const { fileURLToPath } = await import('node:url');
-		const url = new URL(path, import.meta.url);
-		await using fixture = await createFixture(fileURLToPath(new URL('.', url)));
-		return fixture.readFile('SKILL.md', 'utf8');
-	}
 }

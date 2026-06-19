@@ -70,31 +70,23 @@ function readMaxLines(option: unknown): number {
 }
 
 if (import.meta.vitest) {
-	test('accepts a SKILL.md with 220 lines', async () => {
-		expect(validateSkillLength(await readFixture('./__fixture__/valid/SKILL.md'))).toBeUndefined();
+	test('accepts a SKILL.md with 220 lines', () => {
+		expect(validateSkillLength(Array(220).fill('line').join('\n'))).toBeUndefined();
 	});
 
-	test('reports a SKILL.md with more than 220 lines', async () => {
-		expect(validateSkillLength(await readFixture('./__fixture__/invalid/SKILL.md'))).toEqual({
+	test('reports a SKILL.md with more than 220 lines', () => {
+		expect(validateSkillLength(Array(221).fill('line').join('\n'))).toEqual({
 			line: 221,
 			message:
 				'SKILL.md has 221 lines; keep it at or below 220 lines and move details into referenced files.',
 		});
 	});
 
-	test('uses a configured line limit', async () => {
-		expect(validateSkillLength(await readFixture('./__fixture__/valid/SKILL.md'), 219)).toEqual({
+	test('uses a configured line limit', () => {
+		expect(validateSkillLength(Array(220).fill('line').join('\n'), 219)).toEqual({
 			line: 220,
 			message:
 				'SKILL.md has 220 lines; keep it at or below 219 lines and move details into referenced files.',
 		});
 	});
-
-	async function readFixture(path: string): Promise<string> {
-		const { createFixture } = await import('fs-fixture');
-		const { fileURLToPath } = await import('node:url');
-		const url = new URL(path, import.meta.url);
-		await using fixture = await createFixture(fileURLToPath(new URL('.', url)));
-		return fixture.readFile('SKILL.md', 'utf8');
-	}
 }

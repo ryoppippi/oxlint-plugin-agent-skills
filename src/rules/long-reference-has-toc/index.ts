@@ -1,26 +1,18 @@
 import { readFileSync } from 'node:fs';
-import { dirname, extname, isAbsolute, relative, resolve, sep } from 'node:path';
-
-import { fromMarkdown } from 'mdast-util-from-markdown';
+import { dirname, extname, resolve } from 'node:path';
 
 import { createSkillRule } from '../../create-skill-rule.ts';
+import { escapesDirectory } from '../../file-paths.ts';
+import {
+	collectLocalMarkdownReferences,
+	type LocalMarkdownReference,
+} from '../../markdown-references.ts';
 
 export const DEFAULT_MAX_REFERENCE_LINES = 100;
 
 export interface ReferenceTableOfContentsIssue {
 	line: number;
 	message: string;
-}
-
-interface MarkdownNode {
-	children?: unknown;
-	position?: {
-		start?: {
-			line?: unknown;
-		};
-	};
-	type?: unknown;
-	url?: unknown;
 }
 
 const TEXT_EXTENSIONS = new Set(['.adoc', '.md', '.mdx', '.rst', '.txt']);
@@ -43,43 +35,25 @@ export function validateReferenceTablesOfContents(
 	option?: unknown,
 ): ReferenceTableOfContentsIssue[] {
 	const issues: ReferenceTableOfContentsIssue[] = [];
-	visitNode(fromMarkdown(source), dirname(filePath), readMaxLines(option), issues);
+	const skillDirectory = dirname(filePath);
+	const maxLines = readMaxLines(option);
+
+	for (const reference of collectLocalMarkdownReferences(source)) {
+		if (reference.kind !== 'image') {
+			validateReference(reference, skillDirectory, maxLines, issues);
+		}
+	}
+
 	return issues;
 }
 
-function visitNode(
-	node: unknown,
-	skillDirectory: string,
-	maxLines: number,
-	issues: ReferenceTableOfContentsIssue[],
-): void {
-	if (!isMarkdownNode(node)) {
-		return;
-	}
-
-	if (
-		(node.type === 'link' || node.type === 'definition') &&
-		typeof node.url === 'string' &&
-		isLocalReference(node.url)
-	) {
-		validateReference(node, node.url, skillDirectory, maxLines, issues);
-	}
-
-	if (Array.isArray(node.children)) {
-		for (const child of node.children) {
-			visitNode(child, skillDirectory, maxLines, issues);
-		}
-	}
-}
-
 function validateReference(
-	node: MarkdownNode,
-	url: string,
+	referenceNode: LocalMarkdownReference,
 	skillDirectory: string,
 	maxLines: number,
 	issues: ReferenceTableOfContentsIssue[],
 ): void {
-	const path = decodePath(url.split(/[?#]/, 1)[0] ?? '');
+	const { line, path, url } = referenceNode;
 	const target = resolve(skillDirectory, path);
 
 	if (
@@ -111,7 +85,7 @@ function validateReference(
 	}
 
 	issues.push({
-		line: typeof node.position?.start?.line === 'number' ? node.position.start.line : 1,
+		line,
 		message: `Reference "${url}" has ${lineCount} lines; add a table of contents near the top.`,
 	});
 }
@@ -131,29 +105,101 @@ function readMaxLines(option: unknown): number {
 	return DEFAULT_MAX_REFERENCE_LINES;
 }
 
-function isLocalReference(url: string): boolean {
-	return (
-		url.length > 0 &&
-		!url.startsWith('#') &&
-		!url.startsWith('/') &&
-		!url.startsWith('//') &&
-		!/^[a-z][a-z\d+.-]*:/i.test(url)
-	);
-}
+if (import.meta.vitest) {
+	test('reports a long referenced Markdown file without a table of contents', async () => {
+		const { createFixture } = await import('fs-fixture');
+		await using fixture = await createFixture({
+			'references/guide.md': Array(101).fill('content').join('\n'),
+		});
 
-function decodePath(path: string): string {
-	try {
-		return decodeURI(path);
-	} catch {
-		return path;
-	}
-}
+		expect(
+			validateReferenceTablesOfContents(
+				fixture.getPath('SKILL.md'),
+				'Read [the guide](references/guide.md).\n',
+			),
+		).toEqual([
+			{
+				line: 1,
+				message:
+					'Reference "references/guide.md" has 101 lines; add a table of contents near the top.',
+			},
+		]);
+	});
 
-function escapesDirectory(directory: string, target: string): boolean {
-	const path = relative(directory, target);
-	return path === '..' || path.startsWith(`..${sep}`) || isAbsolute(path);
-}
+	test('accepts a long reference with a linked table of contents near the top', async () => {
+		const { createFixture } = await import('fs-fixture');
+		await using fixture = await createFixture({
+			'references/guide.md': [
+				'# Guide',
+				'',
+				'- [Usage](#usage)',
+				'',
+				'## Usage',
+				...Array(96).fill('content'),
+			].join('\n'),
+		});
 
-function isMarkdownNode(value: unknown): value is MarkdownNode {
-	return typeof value === 'object' && value !== null;
+		expect(
+			validateReferenceTablesOfContents(
+				fixture.getPath('SKILL.md'),
+				'Read [the guide](references/guide.md).\n',
+			),
+		).toEqual([]);
+	});
+
+	test('accepts a reference at the configured line threshold', async () => {
+		const { createFixture } = await import('fs-fixture');
+		await using fixture = await createFixture({
+			'references/guide.md': ['one', 'two'].join('\n'),
+		});
+
+		expect(
+			validateReferenceTablesOfContents(
+				fixture.getPath('SKILL.md'),
+				'Read [the guide](references/guide.md).\n',
+				{ maxLines: 2 },
+			),
+		).toEqual([]);
+	});
+
+	test('does not count a trailing newline as an extra line', async () => {
+		const { createFixture } = await import('fs-fixture');
+		await using fixture = await createFixture({
+			'references/guide.md': `${Array(100).fill('content').join('\n')}\n`,
+		});
+
+		expect(
+			validateReferenceTablesOfContents(
+				fixture.getPath('SKILL.md'),
+				'Read [the guide](references/guide.md).\n',
+			),
+		).toEqual([]);
+	});
+
+	test('uses a configured line threshold', async () => {
+		const { createFixture } = await import('fs-fixture');
+		await using fixture = await createFixture({
+			'references/guide.txt': ['one', 'two', 'three'].join('\n'),
+		});
+
+		expect(
+			validateReferenceTablesOfContents(
+				fixture.getPath('SKILL.md'),
+				'Read [the guide](references/guide.txt).\n',
+				{ maxLines: 2 },
+			),
+		).toHaveLength(1);
+	});
+
+	test('ignores missing references and non-text assets', async () => {
+		const { createFixture } = await import('fs-fixture');
+		await using fixture = await createFixture();
+
+		expect(
+			validateReferenceTablesOfContents(
+				fixture.getPath('SKILL.md'),
+				'[missing](references/missing.md) ![image](assets/image.png)\n',
+			),
+		).toEqual([]);
+	});
 }

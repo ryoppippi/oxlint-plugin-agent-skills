@@ -90,26 +90,36 @@ export function validateUniqueSkillNames(
 }
 
 if (import.meta.vitest) {
-	test('accepts skills with unique names', async () => {
-		const skills = await loadSkills([
-			{ displayPath: 'skills/commit/SKILL.md', fixture: './__fixture__/valid/commit/SKILL.md' },
-			{ displayPath: 'skills/review/SKILL.md', fixture: './__fixture__/valid/review/SKILL.md' },
-		]);
+	test('accepts skills with unique names', () => {
+		const skills = [
+			{
+				displayPath: 'skills/commit/SKILL.md',
+				filePath: '/skills/commit/SKILL.md',
+				source: '---\nname: commit\ndescription: Writes commits.\n---\n',
+			},
+			{
+				displayPath: 'skills/review/SKILL.md',
+				filePath: '/skills/review/SKILL.md',
+				source: '---\nname: review\ndescription: Reviews code.\n---\n',
+			},
+		] satisfies DiscoveredSkill[];
 
 		expect(validateUniqueSkillNames(skills)).toEqual([]);
 	});
 
-	test('reports every skill that shares a name', async () => {
-		const skills = await loadSkills([
+	test('reports every skill that shares a name', () => {
+		const skills = [
 			{
 				displayPath: 'a/code-review/SKILL.md',
-				fixture: './__fixture__/invalid/a/code-review/SKILL.md',
+				filePath: '/a/code-review/SKILL.md',
+				source: '---\nname: code-review\ndescription: Reviews code.\n---\n',
 			},
 			{
 				displayPath: 'b/code-review/SKILL.md',
-				fixture: './__fixture__/invalid/b/code-review/SKILL.md',
+				filePath: '/b/code-review/SKILL.md',
+				source: '---\nname: code-review\ndescription: Reviews diffs.\n---\n',
 			},
-		]);
+		] satisfies DiscoveredSkill[];
 
 		expect(validateUniqueSkillNames(skills)).toEqual([
 			{
@@ -127,35 +137,20 @@ if (import.meta.vitest) {
 		]);
 	});
 
-	test('ignores a name that only appears once', async () => {
-		const skills = await loadSkills([
+	test('ignores a name that only appears once', () => {
+		const skills = [
 			{
 				displayPath: 'a/code-review/SKILL.md',
-				fixture: './__fixture__/invalid/a/code-review/SKILL.md',
+				filePath: '/a/code-review/SKILL.md',
+				source: '---\nname: code-review\ndescription: Reviews code.\n---\n',
 			},
-			{ displayPath: 'skills/review/SKILL.md', fixture: './__fixture__/valid/review/SKILL.md' },
-		]);
+			{
+				displayPath: 'skills/review/SKILL.md',
+				filePath: '/skills/review/SKILL.md',
+				source: '---\nname: review\ndescription: Reviews code.\n---\n',
+			},
+		] satisfies DiscoveredSkill[];
 
 		expect(validateUniqueSkillNames(skills)).toEqual([]);
 	});
-
-	async function loadSkills(
-		entries: readonly { displayPath: string; fixture: string }[],
-	): Promise<DiscoveredSkill[]> {
-		const { createFixture } = await import('fs-fixture');
-		const { fileURLToPath } = await import('node:url');
-
-		return Promise.all(
-			entries.map(async ({ displayPath, fixture }) => {
-				const url = new URL(fixture, import.meta.url);
-				await using fileFixture = await createFixture(fileURLToPath(new URL('.', url)));
-
-				return {
-					displayPath,
-					filePath: fileFixture.getPath('SKILL.md'),
-					source: await fileFixture.readFile('SKILL.md', 'utf8'),
-				};
-			}),
-		);
-	}
 }

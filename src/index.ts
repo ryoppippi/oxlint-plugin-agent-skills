@@ -12,7 +12,6 @@ import { noUnknownFrontmatterFieldsRule } from './rules/no-unknown-frontmatter-f
 import { noWindowsPathsRule } from './rules/no-windows-paths/index.ts';
 import { skillIndexBudgetRule } from './rules/skill-index-budget/index.ts';
 import { validFrontmatterRule } from './rules/valid-frontmatter/index.ts';
-import { validOpenAiMetadataRule } from './rules/valid-openai-metadata/index.ts';
 
 const plugin = definePlugin({
 	meta: {
@@ -31,7 +30,6 @@ const plugin = definePlugin({
 		'no-windows-paths': noWindowsPathsRule,
 		'skill-index-budget': skillIndexBudgetRule,
 		'valid-frontmatter': validFrontmatterRule,
-		'valid-openai-metadata': validOpenAiMetadataRule,
 	},
 });
 
@@ -53,7 +51,6 @@ if (import.meta.vitest) {
 			'no-windows-paths',
 			'skill-index-budget',
 			'valid-frontmatter',
-			'valid-openai-metadata',
 		]);
 	});
 
@@ -64,7 +61,6 @@ if (import.meta.vitest) {
 		const { fileURLToPath } = await import('node:url');
 		await using fixture = await createFixture({
 			'.agents/skills/long-reference/references/api.md': Array(101).fill('content').join('\n'),
-			'.agents/skills/openai-metadata/agents/openai.yaml': 'interface:\n  brand_color: blue\n',
 			'anchor.js': 'const anchor = 1;\n',
 		});
 		const fixtureCopies = [
@@ -113,10 +109,6 @@ if (import.meta.vitest) {
 				'./rules/no-deep-references/__fixture__/valid/shallow/SKILL.md',
 				'.agents/skills/long-reference/SKILL.md',
 			],
-			[
-				'./rules/no-deep-references/__fixture__/valid/shallow/SKILL.md',
-				'.agents/skills/openai-metadata/SKILL.md',
-			],
 		] as const;
 
 		for (const [source, destination] of fixtureCopies) {
@@ -142,7 +134,6 @@ if (import.meta.vitest) {
 					'skills/no-windows-paths': 'error',
 					'skills/skill-index-budget': ['error', { maxCharacters: 1 }],
 					'skills/valid-frontmatter': 'error',
-					'skills/valid-openai-metadata': 'error',
 				},
 			}),
 		);
@@ -174,7 +165,6 @@ if (import.meta.vitest) {
 		expect(output).toContain('[Error/skills(no-unknown-frontmatter-fields)]');
 		expect(output).toContain('[Error/skills(no-broken-local-references)]');
 		expect(output).toContain('[Error/skills(long-reference-has-toc)]');
-		expect(output).toContain('[Error/skills(valid-openai-metadata)]');
 	});
 
 	test('scans configured skill roots', async () => {

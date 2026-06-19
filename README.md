@@ -29,8 +29,6 @@ pnpm add -D oxlint oxlint-plugin-agent-skills
 		"skills/description-third-person": "warn",
 		// Opt-in: stricter than this plugin's default leniency.
 		"skills/no-unknown-frontmatter-fields": "off",
-		// Opt-in: validates the OpenAI-specific agents/openai.yaml file.
-		"skills/valid-openai-metadata": "off",
 	},
 }
 ```
@@ -84,7 +82,6 @@ location.
 | [`skills/no-windows-paths`](src/rules/no-windows-paths/README.md)                           | Relative Markdown reference targets use forward slashes, not Windows-style backslashes                              |
 | [`skills/description-third-person`](src/rules/description-third-person/README.md)           | `description` is written in the third person, not first or second person                                            |
 | [`skills/no-unknown-frontmatter-fields`](src/rules/no-unknown-frontmatter-fields/README.md) | Frontmatter has no fields outside the specification (opt-in; not in the recommended preset)                         |
-| [`skills/valid-openai-metadata`](src/rules/valid-openai-metadata/README.md)                 | Optional `agents/openai.yaml` metadata uses the documented Codex field types (opt-in)                               |
 
 The 220-line limit is an operational safeguard based on a
 [community analysis of Codex skill reads](https://www.reddit.com/r/codex/comments/1t1rbqt/codex_may_only_read_the_first_220_lines_of_a/).

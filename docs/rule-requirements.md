@@ -32,7 +32,6 @@ would reject a valid portable skill.
 | Reject non-portable frontmatter extensions                                | Agent Skills           | `no-unknown-frontmatter-fields` | Covered as opt-in                            |
 | Require local references to resolve inside the skill                      | Agent Skills           | `no-broken-local-references`    | Covered                                      |
 | Add navigation to long text references                                    | Progressive disclosure | `long-reference-has-toc`        | Covered                                      |
-| Validate optional `agents/openai.yaml` metadata                           | Codex                  | `valid-openai-metadata`         | Covered as opt-in                            |
 
 ## Implemented additions
 
@@ -68,34 +67,6 @@ must:
 - accept a Markdown list of links to headings near the start of the file;
 - report the reference file through the owning `SKILL.md` diagnostic;
 - remain outside a portable-only preset.
-
-### `valid-openai-metadata`
-
-Priority: high. Codex-specific opt-in rule.
-
-Codex optionally reads `agents/openai.yaml` for UI metadata, invocation policy,
-and MCP dependencies. When that file exists, the rule must:
-
-- require valid YAML and validate the documented `interface`, `policy`, and
-  `dependencies` sections;
-- type-check documented fields;
-- require `policy.allow_implicit_invocation` to be a boolean;
-- require `interface.brand_color` to be a hexadecimal colour;
-- resolve `interface.icon_small` and `interface.icon_large` relative to the
-  skill directory and require the assets to exist inside it;
-- validate each `dependencies.tools` entry and currently accept `mcp` as the
-  documented dependency type;
-- avoid requiring `agents/openai.yaml`, because it is optional and
-  Codex-specific;
-- tolerate unknown fields by default for forward compatibility and offer a
-  separate strict option if needed;
-- keep recommendations such as quoted strings, a 25–64 character short
-  description, and a one-sentence default prompt as warnings rather than
-  portable errors.
-
-The public Codex guide is the schema authority. Examples and the OpenAI skill
-creator may inform warnings but must not silently introduce stricter required
-fields.
 
 ### Host-specific skill-index budgets
 

@@ -74,11 +74,7 @@ interface IntegerOptionSchema {
 	type: 'integer';
 }
 
-interface BooleanOptionSchema {
-	type: 'boolean';
-}
-
-type SkillRuleOptionSchema = BooleanOptionSchema | IntegerOptionSchema | typeof ROOTS_OPTION_SCHEMA;
+type SkillRuleOptionSchema = IntegerOptionSchema | typeof ROOTS_OPTION_SCHEMA;
 
 /**
  * Builds an Oxlint rule whose validator sees every discovered skill at once.
@@ -307,5 +303,49 @@ if (import.meta.vitest) {
 			join(cwd, '.agents/skills/commit/SKILL.md'),
 			join(cwd, 'agents/skills/testing/SKILL.md'),
 		]);
+	});
+
+	test('follows symlinked skill directories', async () => {
+		const { createFixture } = await import('fs-fixture');
+		await using fixture = await createFixture({
+			'.agents/skills/example': ({ getPath, symlink }) => symlink(getPath('shared/example')),
+			'shared/example/SKILL.md': '# Example\n',
+		});
+
+		expect(discoverSkillFiles(fixture.path)).toEqual([
+			fixture.getPath('.agents/skills/example/SKILL.md'),
+		]);
+	});
+
+	test('deduplicates files discovered through overlapping roots', async () => {
+		const { createFixture } = await import('fs-fixture');
+		await using fixture = await createFixture({
+			'skills/example/SKILL.md': '# Example\n',
+		});
+
+		expect(discoverSkillFiles(fixture.path, ['skills', 'skills/example'])).toEqual([
+			fixture.getPath('skills/example/SKILL.md'),
+		]);
+	});
+
+	test('does not recurse forever through symlink cycles', async () => {
+		const { createFixture } = await import('fs-fixture');
+		await using fixture = await createFixture({
+			'skills/example/cycle': ({ getPath, symlink }) => symlink(getPath('skills')),
+			'skills/example/SKILL.md': '# Example\n',
+		});
+
+		expect(discoverSkillFiles(fixture.path, ['skills'])).toEqual([
+			fixture.getPath('skills/example/SKILL.md'),
+		]);
+	});
+
+	test('ignores broken symlinks while scanning skills', async () => {
+		const { createFixture } = await import('fs-fixture');
+		await using fixture = await createFixture({
+			'skills/broken': ({ getPath, symlink }) => symlink(getPath('missing')),
+		});
+
+		expect(discoverSkillFiles(fixture.path, ['skills'])).toEqual([]);
 	});
 }

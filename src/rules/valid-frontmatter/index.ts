@@ -261,46 +261,44 @@ function issue(code: FrontmatterIssueCode, line: number, message: string): Front
 }
 
 if (import.meta.vitest) {
-	test('accepts valid Agent Skill frontmatter', async () => {
-		const issues = validateFrontmatter(await readFixture('./__fixture__/valid/SKILL.md'));
+	test('accepts valid Agent Skill frontmatter', () => {
+		const issues = validateFrontmatter(
+			'---\nname: reviewing-code\ndescription: Reviews code. Use when inspecting changes.\nlicense: MIT\ncompatibility: Requires git.\nmetadata:\n  author: example\nallowed-tools: Read Bash(git:*)\n---\n\n# Reviewing Code\n',
+		);
 
 		expect(issues).toEqual([]);
 	});
 
-	test('requires a closed YAML frontmatter block', async () => {
-		const issues = validateFrontmatter(
-			await readFixture('./__fixture__/invalid/unclosed/SKILL.md'),
-		);
+	test('requires a closed YAML frontmatter block', () => {
+		const issues = validateFrontmatter('---\nname: reviewing-code\ndescription: Reviews code.\n');
 
 		expect(issues.map(({ code, line }) => ({ code, line }))).toEqual([
 			{ code: 'unclosed-frontmatter', line: 1 },
 		]);
 	});
 
-	test('reports invalid YAML at its SKILL.md line', async () => {
-		const issues = validateFrontmatter(await readFixture('./__fixture__/invalid/yaml/SKILL.md'));
+	test('reports invalid YAML at its SKILL.md line', () => {
+		const issues = validateFrontmatter('---\nname: reviewing-code\ndescription: [\n---\n');
 
 		expect(issues.map(({ code, line }) => ({ code, line }))).toEqual([
 			{ code: 'invalid-frontmatter', line: 3 },
 		]);
 	});
 
-	test('requires name and description fields', async () => {
-		const issues = validateFrontmatter(
-			await readFixture('./__fixture__/invalid/missing-required/SKILL.md'),
-		);
+	test('requires name and description fields', () => {
+		const issues = validateFrontmatter('---\nlicense: MIT\n---\n');
 
 		expect(issues.map(({ code }) => code)).toEqual(['missing-name', 'missing-description']);
 	});
 
 	test.each([
-		['name-uppercase', 'invalid-name'],
-		['name-leading-hyphen', 'invalid-name'],
-		['name-double-hyphen', 'invalid-name'],
-		['name-reserved', 'reserved-name'],
-	])('rejects the name fixture %s', async (fixture, expectedCode) => {
+		['Reviewing-Code', 'invalid-name'],
+		['-reviewing-code', 'invalid-name'],
+		['reviewing--code', 'invalid-name'],
+		['claude-reviewing', 'reserved-name'],
+	])('rejects the name %s', (name, expectedCode) => {
 		const issues = validateFrontmatter(
-			await readFixture(`./__fixture__/invalid/${fixture}/SKILL.md`),
+			`---\nname: ${name}\ndescription: Reviews code. Use when inspecting changes.\n---\n`,
 		);
 
 		expect(issues.map(({ code }) => code)).toContain(expectedCode);
@@ -317,9 +315,9 @@ if (import.meta.vitest) {
 		},
 	);
 
-	test('validates optional field types', async () => {
+	test('validates optional field types', () => {
 		const issues = validateFrontmatter(
-			await readFixture('./__fixture__/invalid/optional-fields/SKILL.md'),
+			'---\nname: reviewing-code\ndescription: Reviews code.\nlicense:\n  kind: MIT\ncompatibility: 42\nmetadata:\n  version: 1\nallowed-tools:\n  - Read\n---\n',
 		);
 
 		expect(issues.map(({ code }) => code)).toEqual([
@@ -329,12 +327,4 @@ if (import.meta.vitest) {
 			'invalid-allowed-tools',
 		]);
 	});
-
-	async function readFixture(path: string): Promise<string> {
-		const { createFixture } = await import('fs-fixture');
-		const { fileURLToPath } = await import('node:url');
-		const url = new URL(path, import.meta.url);
-		await using fixture = await createFixture(fileURLToPath(new URL('.', url)));
-		return fixture.readFile('SKILL.md', 'utf8');
-	}
 }
