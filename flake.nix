@@ -10,6 +10,8 @@
   outputs =
     { nixpkgs, nix-vite-plus, ... }:
     let
+      nodeVersion = nixpkgs.lib.removeSuffix "\n" (builtins.readFile ./.node-version);
+      nodeMajor = builtins.head (nixpkgs.lib.splitString "." nodeVersion);
       systems = [
         "aarch64-darwin"
         "aarch64-linux"
@@ -25,7 +27,10 @@
         in
         {
           default = pkgs.mkShellNoCC {
-            packages = [ nix-vite-plus.packages.${system}.vp ];
+            packages = [
+              pkgs."nodejs_${nodeMajor}"
+              nix-vite-plus.packages.${system}.vp
+            ];
           };
         }
       );
