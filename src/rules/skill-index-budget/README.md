@@ -23,6 +23,11 @@ Character count is a deliberately coarse, dependency-free proxy for token
 usage. The default budget of 20000 characters is an operational safeguard, not
 an Agent Skills specification limit.
 
+Budgets depend on the agent host. Codex uses at most 2% of the model context
+window for its initial skill list, or 8000 characters when the context window
+is unknown. A project targeting that fallback can set `maxCharacters` to
+`8000`; other hosts can choose their own explicit budget.
+
 ## Options
 
 - `maxCharacters` — the combined character budget. Defaults to `20000`.
@@ -37,3 +42,4 @@ an Agent Skills specification limit.
 ## References
 
 - [Claude skill authoring best practices](https://platform.claude.com/docs/en/agents-and-tools/agent-skills/best-practices)
+- [Codex Agent Skills guide](https://developers.openai.com/codex/skills)

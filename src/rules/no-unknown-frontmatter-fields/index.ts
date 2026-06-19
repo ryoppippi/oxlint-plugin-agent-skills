@@ -74,12 +74,20 @@ export function validateKnownFields(source: string): UnknownFieldIssue[] {
 }
 
 if (import.meta.vitest) {
-	test('accepts only specified fields', async () => {
-		expect(validateKnownFields(await readFixture('./__fixture__/valid/SKILL.md'))).toEqual([]);
+	test('accepts only specified fields', () => {
+		expect(
+			validateKnownFields(
+				'---\nname: clean-fields\ndescription: Uses only specified fields.\nlicense: MIT\nmetadata:\n  author: example\n---\n\n# Clean Fields\n',
+			),
+		).toEqual([]);
 	});
 
-	test('reports an unknown field at its line', async () => {
-		expect(validateKnownFields(await readFixture('./__fixture__/invalid/SKILL.md'))).toEqual([
+	test('reports an unknown field at its line', () => {
+		expect(
+			validateKnownFields(
+				'---\nname: typo-field\ndescription: Has a typo.\ndescriptions: typo\n---\n',
+			),
+		).toEqual([
 			{
 				line: 4,
 				message:
@@ -91,9 +99,4 @@ if (import.meta.vitest) {
 	test('stays silent when frontmatter is invalid', () => {
 		expect(validateKnownFields('# No frontmatter here\n')).toEqual([]);
 	});
-
-	async function readFixture(path: string): Promise<string> {
-		const { readFile } = await import('node:fs/promises');
-		return readFile(new URL(path, import.meta.url), 'utf8');
-	}
 }

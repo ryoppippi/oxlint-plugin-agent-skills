@@ -62,18 +62,20 @@ export function validateDirectoryName(
 }
 
 if (import.meta.vitest) {
-	test('accepts a name matching the skill directory', async () => {
-		const fixture = await readFixture('./__fixture__/valid/reviewing-code/SKILL.md');
-		const issue = validateDirectoryName(fixture.filePath, fixture.source);
+	test('accepts a name matching the skill directory', () => {
+		const issue = validateDirectoryName(
+			'/skills/reviewing-code/SKILL.md',
+			'---\nname: reviewing-code\ndescription: Reviews code.\n---\n',
+		);
 
 		expect(issue).toBeUndefined();
 	});
 
-	test('reports a name that differs from the skill directory', async () => {
-		const fixture = await readFixture(
-			'./__fixture__/invalid/mismatched-name/reviewing-code/SKILL.md',
+	test('reports a name that differs from the skill directory', () => {
+		const issue = validateDirectoryName(
+			'/skills/reviewing-code/SKILL.md',
+			'---\nname: code-review\ndescription: Reviews code.\n---\n',
 		);
-		const issue = validateDirectoryName(fixture.filePath, fixture.source);
 
 		expect(issue).toEqual({
 			line: 2,
@@ -81,21 +83,12 @@ if (import.meta.vitest) {
 		});
 	});
 
-	test('skips comparison when frontmatter is invalid', async () => {
-		const fixture = await readFixture('./__fixture__/invalid/frontmatter/reviewing-code/SKILL.md');
-		const issue = validateDirectoryName(fixture.filePath, fixture.source);
+	test('skips comparison when frontmatter is invalid', () => {
+		const issue = validateDirectoryName(
+			'/skills/reviewing-code/SKILL.md',
+			'name: reviewing-code\n',
+		);
 
 		expect(issue).toBeUndefined();
 	});
-
-	async function readFixture(path: string): Promise<{ filePath: string; source: string }> {
-		const { readFile } = await import('node:fs/promises');
-		const { fileURLToPath } = await import('node:url');
-		const url = new URL(path, import.meta.url);
-
-		return {
-			filePath: fileURLToPath(url),
-			source: await readFile(url, 'utf8'),
-		};
-	}
 }

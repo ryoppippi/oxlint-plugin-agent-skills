@@ -19,7 +19,7 @@
  * standard Agent Skill locations `.agents/skills`, `agents/skills`, and
  * `skills`, relative to Oxlint's working directory.
  */
-import { readdirSync, readFileSync } from 'node:fs';
+import { readdirSync, readFileSync, realpathSync, statSync } from 'node:fs';
 import { join, relative, resolve, sep } from 'node:path';
 
 import { defineRule } from '@oxlint/plugins';
@@ -199,9 +199,11 @@ export function discoverSkillFiles(
 	roots: readonly string[] = DEFAULT_SKILL_ROOTS,
 ): string[] {
 	const skillFiles: string[] = [];
+	const visitedDirectories = new Set<string>();
+	const visitedFiles = new Set<string>();
 
 	for (const root of roots) {
-		visitDirectory(resolve(cwd, root), skillFiles);
+		visitDirectory(resolve(cwd, root), skillFiles, visitedDirectories, visitedFiles);
 	}
 
 	return skillFiles.sort();
@@ -225,10 +227,23 @@ function displayPath(cwd: string, filePath: string): string {
 	return relative(cwd, filePath).split(sep).join('/');
 }
 
-function visitDirectory(directory: string, skillFiles: string[]): void {
+function visitDirectory(
+	directory: string,
+	skillFiles: string[],
+	visitedDirectories: Set<string>,
+	visitedFiles: Set<string>,
+): void {
 	let entries;
+	let realDirectory;
 
 	try {
+		realDirectory = realpathSync(directory);
+
+		if (visitedDirectories.has(realDirectory)) {
+			return;
+		}
+
+		visitedDirectories.add(realDirectory);
 		entries = readdirSync(directory, { withFileTypes: true });
 	} catch (error) {
 		if (isMissingDirectoryError(error)) {
@@ -240,11 +255,32 @@ function visitDirectory(directory: string, skillFiles: string[]): void {
 
 	for (const entry of entries) {
 		const path = join(directory, entry.name);
+		let isDirectory = entry.isDirectory();
+		let isFile = entry.isFile();
 
-		if (entry.isDirectory()) {
-			visitDirectory(path, skillFiles);
-		} else if (entry.isFile() && entry.name === 'SKILL.md') {
-			skillFiles.push(path);
+		if (entry.isSymbolicLink()) {
+			try {
+				const target = statSync(path);
+				isDirectory = target.isDirectory();
+				isFile = target.isFile();
+			} catch (error) {
+				if (isMissingDirectoryError(error)) {
+					continue;
+				}
+
+				throw error;
+			}
+		}
+
+		if (isDirectory) {
+			visitDirectory(path, skillFiles, visitedDirectories, visitedFiles);
+		} else if (isFile && entry.name === 'SKILL.md') {
+			const realFile = realpathSync(path);
+
+			if (!visitedFiles.has(realFile)) {
+				visitedFiles.add(realFile);
+				skillFiles.push(path);
+			}
 		}
 	}
 }
@@ -267,5 +303,49 @@ if (import.meta.vitest) {
 			join(cwd, '.agents/skills/commit/SKILL.md'),
 			join(cwd, 'agents/skills/testing/SKILL.md'),
 		]);
+	});
+
+	test('follows symlinked skill directories', async () => {
+		const { createFixture } = await import('fs-fixture');
+		await using fixture = await createFixture({
+			'.agents/skills/example': ({ getPath, symlink }) => symlink(getPath('shared/example')),
+			'shared/example/SKILL.md': '# Example\n',
+		});
+
+		expect(discoverSkillFiles(fixture.path)).toEqual([
+			fixture.getPath('.agents/skills/example/SKILL.md'),
+		]);
+	});
+
+	test('deduplicates files discovered through overlapping roots', async () => {
+		const { createFixture } = await import('fs-fixture');
+		await using fixture = await createFixture({
+			'skills/example/SKILL.md': '# Example\n',
+		});
+
+		expect(discoverSkillFiles(fixture.path, ['skills', 'skills/example'])).toEqual([
+			fixture.getPath('skills/example/SKILL.md'),
+		]);
+	});
+
+	test('does not recurse forever through symlink cycles', async () => {
+		const { createFixture } = await import('fs-fixture');
+		await using fixture = await createFixture({
+			'skills/example/cycle': ({ getPath, symlink }) => symlink(getPath('skills')),
+			'skills/example/SKILL.md': '# Example\n',
+		});
+
+		expect(discoverSkillFiles(fixture.path, ['skills'])).toEqual([
+			fixture.getPath('skills/example/SKILL.md'),
+		]);
+	});
+
+	test('ignores broken symlinks while scanning skills', async () => {
+		const { createFixture } = await import('fs-fixture');
+		await using fixture = await createFixture({
+			'skills/broken': ({ getPath, symlink }) => symlink(getPath('missing')),
+		});
+
+		expect(discoverSkillFiles(fixture.path, ['skills'])).toEqual([]);
 	});
 }

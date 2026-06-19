@@ -18,24 +18,12 @@
  *
  * @see https://platform.claude.com/docs/en/agents-and-tools/agent-skills/best-practices
  */
-import { fromMarkdown } from 'mdast-util-from-markdown';
-
 import { createSkillRule } from '../../create-skill-rule.ts';
+import { collectLocalMarkdownReferences } from '../../markdown-references.ts';
 
 export interface ReferenceDepthIssue {
 	line: number;
 	message: string;
-}
-
-interface MarkdownNode {
-	children?: unknown;
-	position?: {
-		start?: {
-			line?: unknown;
-		};
-	};
-	type?: unknown;
-	url?: unknown;
 }
 
 /**
@@ -48,65 +36,30 @@ export const noDeepReferencesRule = createSkillRule(
 );
 
 export function validateReferenceDepth(source: string): ReferenceDepthIssue[] {
-	const issues: ReferenceDepthIssue[] = [];
-	visitNode(fromMarkdown(source), issues);
-	return issues;
-}
-
-function visitNode(node: unknown, issues: ReferenceDepthIssue[]): void {
-	if (!isMarkdownNode(node)) {
-		return;
-	}
-
-	if (
-		(node.type === 'link' || node.type === 'image' || node.type === 'definition') &&
-		typeof node.url === 'string' &&
-		isDeepRelativeReference(node.url)
-	) {
-		issues.push({
-			line: typeof node.position?.start?.line === 'number' ? node.position.start.line : 1,
-			message: `Reference "${node.url}" is nested too deeply; link files at most one directory below SKILL.md.`,
-		});
-	}
-
-	if (Array.isArray(node.children)) {
-		for (const child of node.children) {
-			visitNode(child, issues);
-		}
-	}
-}
-
-function isDeepRelativeReference(url: string): boolean {
-	if (
-		url.startsWith('#') ||
-		url.startsWith('/') ||
-		url.startsWith('//') ||
-		/^[a-z][a-z\d+.-]*:/i.test(url)
-	) {
-		return false;
-	}
-
-	const path = url.split(/[?#]/, 1)[0] ?? '';
-	const segments = path.split('/').filter((segment) => segment !== '' && segment !== '.');
-
-	return segments.includes('..') || segments.length > 2;
-}
-
-function isMarkdownNode(value: unknown): value is MarkdownNode {
-	return typeof value === 'object' && value !== null;
+	return collectLocalMarkdownReferences(source)
+		.filter(({ path }) => {
+			const segments = path.split('/').filter((segment) => segment !== '' && segment !== '.');
+			return segments.includes('..') || segments.length > 2;
+		})
+		.map(({ line, url }) => ({
+			line,
+			message: `Reference "${url}" is nested too deeply; link files at most one directory below SKILL.md.`,
+		}));
 }
 
 if (import.meta.vitest) {
-	test('accepts top-level and one-directory references', async () => {
+	test('accepts top-level and one-directory references', () => {
 		const issues = validateReferenceDepth(
-			await readFixture('./__fixture__/valid/shallow/SKILL.md'),
+			'[Forms](FORMS.md)\n[API](references/api.md)\n[Script](scripts/validate.sh)\n',
 		);
 
 		expect(issues).toEqual([]);
 	});
 
-	test('reports references nested more than one directory deep', async () => {
-		const issues = validateReferenceDepth(await readFixture('./__fixture__/invalid/SKILL.md'));
+	test('reports references nested more than one directory deep', () => {
+		const issues = validateReferenceDepth(
+			'line 1\nline 2\nline 3\nline 4\nline 5\n[API](references/platform/api.md)\n',
+		);
 
 		expect(issues).toEqual([
 			{
@@ -117,16 +70,11 @@ if (import.meta.vitest) {
 		]);
 	});
 
-	test('ignores external links and Markdown inside code blocks', async () => {
+	test('ignores external links and Markdown inside code blocks', () => {
 		const issues = validateReferenceDepth(
-			await readFixture('./__fixture__/valid/ignored/SKILL.md'),
+			'[Specification](https://agentskills.io/specification)\n\n```markdown\n[Nested](references/platform/api.md)\n```\n',
 		);
 
 		expect(issues).toEqual([]);
 	});
-
-	async function readFixture(path: string): Promise<string> {
-		const { readFile } = await import('node:fs/promises');
-		return readFile(new URL(path, import.meta.url), 'utf8');
-	}
 }
