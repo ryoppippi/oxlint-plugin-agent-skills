@@ -1,65 +1,43 @@
-import { mkdir, mkdtemp, rm, symlink, writeFile } from 'node:fs/promises';
-import { tmpdir } from 'node:os';
-import { join } from 'node:path';
+import { createFixture } from 'fs-fixture';
 
 import { discoverSkillFiles } from './create-skill-rule.ts';
 
-const temporaryDirectories: string[] = [];
-
-afterEach(async () => {
-	await Promise.all(
-		temporaryDirectories
-			.splice(0)
-			.map((directory) => rm(directory, { force: true, recursive: true })),
-	);
-});
-
 test('follows symlinked skill directories', async () => {
-	const directory = await createTemporaryDirectory();
-	const target = join(directory, 'shared/example');
-	await mkdir(target, { recursive: true });
-	await writeFile(join(target, 'SKILL.md'), '# Example\n');
-	await mkdir(join(directory, '.agents/skills'), { recursive: true });
-	await symlink(target, join(directory, '.agents/skills/example'));
+	await using fixture = await createFixture({
+		'.agents/skills/example': ({ getPath, symlink }) => symlink(getPath('shared/example')),
+		'shared/example/SKILL.md': '# Example\n',
+	});
 
-	expect(discoverSkillFiles(directory)).toEqual([
-		join(directory, '.agents/skills/example/SKILL.md'),
+	expect(discoverSkillFiles(fixture.path)).toEqual([
+		fixture.getPath('.agents/skills/example/SKILL.md'),
 	]);
 });
 
 test('deduplicates files discovered through overlapping roots', async () => {
-	const directory = await createTemporaryDirectory();
-	const skill = join(directory, 'skills/example');
-	await mkdir(skill, { recursive: true });
-	await writeFile(join(skill, 'SKILL.md'), '# Example\n');
+	await using fixture = await createFixture({
+		'skills/example/SKILL.md': '# Example\n',
+	});
 
-	expect(discoverSkillFiles(directory, ['skills', 'skills/example'])).toEqual([
-		join(directory, 'skills/example/SKILL.md'),
+	expect(discoverSkillFiles(fixture.path, ['skills', 'skills/example'])).toEqual([
+		fixture.getPath('skills/example/SKILL.md'),
 	]);
 });
 
 test('does not recurse forever through symlink cycles', async () => {
-	const directory = await createTemporaryDirectory();
-	const skill = join(directory, 'skills/example');
-	await mkdir(skill, { recursive: true });
-	await writeFile(join(skill, 'SKILL.md'), '# Example\n');
-	await symlink(join(directory, 'skills'), join(skill, 'cycle'));
+	await using fixture = await createFixture({
+		'skills/example/cycle': ({ getPath, symlink }) => symlink(getPath('skills')),
+		'skills/example/SKILL.md': '# Example\n',
+	});
 
-	expect(discoverSkillFiles(directory, ['skills'])).toEqual([
-		join(directory, 'skills/example/SKILL.md'),
+	expect(discoverSkillFiles(fixture.path, ['skills'])).toEqual([
+		fixture.getPath('skills/example/SKILL.md'),
 	]);
 });
 
 test('ignores broken symlinks while scanning skills', async () => {
-	const directory = await createTemporaryDirectory();
-	await mkdir(join(directory, 'skills'), { recursive: true });
-	await symlink(join(directory, 'missing'), join(directory, 'skills/broken'));
+	await using fixture = await createFixture({
+		'skills/broken': ({ getPath, symlink }) => symlink(getPath('missing')),
+	});
 
-	expect(discoverSkillFiles(directory, ['skills'])).toEqual([]);
+	expect(discoverSkillFiles(fixture.path, ['skills'])).toEqual([]);
 });
-
-async function createTemporaryDirectory(): Promise<string> {
-	const directory = await mkdtemp(join(tmpdir(), 'skill-discovery-'));
-	temporaryDirectories.push(directory);
-	return directory;
-}

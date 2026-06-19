@@ -142,17 +142,18 @@ if (import.meta.vitest) {
 	async function loadSkills(
 		entries: readonly { displayPath: string; fixture: string }[],
 	): Promise<DiscoveredSkill[]> {
-		const { readFile } = await import('node:fs/promises');
+		const { createFixture } = await import('fs-fixture');
 		const { fileURLToPath } = await import('node:url');
 
 		return Promise.all(
 			entries.map(async ({ displayPath, fixture }) => {
 				const url = new URL(fixture, import.meta.url);
+				await using fileFixture = await createFixture(fileURLToPath(new URL('.', url)));
 
 				return {
 					displayPath,
-					filePath: fileURLToPath(url),
-					source: await readFile(url, 'utf8'),
+					filePath: fileFixture.getPath('SKILL.md'),
+					source: await fileFixture.readFile('SKILL.md', 'utf8'),
 				};
 			}),
 		);

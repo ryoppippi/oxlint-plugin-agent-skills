@@ -91,7 +91,10 @@ if (import.meta.vitest) {
 	});
 
 	async function readFixture(path: string): Promise<string> {
-		const { readFile } = await import('node:fs/promises');
-		return readFile(new URL(path, import.meta.url), 'utf8');
+		const { createFixture } = await import('fs-fixture');
+		const { fileURLToPath } = await import('node:url');
+		const url = new URL(path, import.meta.url);
+		await using fixture = await createFixture(fileURLToPath(new URL('.', url)));
+		return fixture.readFile('SKILL.md', 'utf8');
 	}
 }

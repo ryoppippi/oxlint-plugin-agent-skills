@@ -89,13 +89,19 @@ if (import.meta.vitest) {
 	});
 
 	async function readFixture(path: string): Promise<{ filePath: string; source: string }> {
-		const { readFile } = await import('node:fs/promises');
+		const { createFixture } = await import('fs-fixture');
+		const { basename, dirname } = await import('node:path');
 		const { fileURLToPath } = await import('node:url');
 		const url = new URL(path, import.meta.url);
+		const directoryName = basename(dirname(fileURLToPath(url)));
+		await using fixture = await createFixture({
+			[directoryName]: {},
+		});
+		await fixture.cp(fileURLToPath(url), `${directoryName}/SKILL.md`);
 
 		return {
-			filePath: fileURLToPath(url),
-			source: await readFile(url, 'utf8'),
+			filePath: fixture.getPath(directoryName, 'SKILL.md'),
+			source: await fixture.readFile(`${directoryName}/SKILL.md`, 'utf8'),
 		};
 	}
 }

@@ -1,38 +1,26 @@
-import { mkdir, mkdtemp, rm, writeFile } from 'node:fs/promises';
-import { tmpdir } from 'node:os';
-import { join } from 'node:path';
+import { createFixture } from 'fs-fixture';
 
 import { validateLocalReferences } from './index.ts';
 
-const temporaryDirectories: string[] = [];
-
-afterEach(async () => {
-	await Promise.all(
-		temporaryDirectories
-			.splice(0)
-			.map((directory) => rm(directory, { force: true, recursive: true })),
-	);
-});
-
 test('accepts existing local references with fragments', async () => {
-	const directory = await createTemporaryDirectory();
-	await mkdir(join(directory, 'references'));
-	await writeFile(join(directory, 'references/guide.md'), '# Guide\n');
+	await using fixture = await createFixture({
+		'references/guide.md': '# Guide\n',
+	});
 
 	expect(
 		validateLocalReferences(
-			join(directory, 'SKILL.md'),
+			fixture.getPath('SKILL.md'),
 			'Read [the guide](references/guide.md#usage).\n',
 		),
 	).toEqual([]);
 });
 
 test('reports missing local references at their source line', async () => {
-	const directory = await createTemporaryDirectory();
+	await using fixture = await createFixture();
 
 	expect(
 		validateLocalReferences(
-			join(directory, 'SKILL.md'),
+			fixture.getPath('SKILL.md'),
 			'# Instructions\n\nRead [the guide](references/missing.md).\n',
 		),
 	).toEqual([
@@ -44,13 +32,13 @@ test('reports missing local references at their source line', async () => {
 });
 
 test('rejects references that escape the skill directory', async () => {
-	const parent = await createTemporaryDirectory();
-	const directory = join(parent, 'skill');
-	await mkdir(directory);
-	await writeFile(join(parent, 'outside.md'), '# Outside\n');
+	await using fixture = await createFixture({
+		'outside.md': '# Outside\n',
+		skill: {},
+	});
 
 	expect(
-		validateLocalReferences(join(directory, 'SKILL.md'), 'Read [outside](../outside.md).\n'),
+		validateLocalReferences(fixture.getPath('skill/SKILL.md'), 'Read [outside](../outside.md).\n'),
 	).toEqual([
 		{
 			line: 1,
@@ -60,19 +48,19 @@ test('rejects references that escape the skill directory', async () => {
 });
 
 test('ignores external links, fragments, and link examples in code blocks', async () => {
-	const directory = await createTemporaryDirectory();
+	await using fixture = await createFixture();
 	const source =
 		'[site](https://example.com) [section](#section)\n\n```markdown\n[example](missing.md)\n```\n';
 
-	expect(validateLocalReferences(join(directory, 'SKILL.md'), source)).toEqual([]);
+	expect(validateLocalReferences(fixture.getPath('SKILL.md'), source)).toEqual([]);
 });
 
 test('validates image and definition targets', async () => {
-	const directory = await createTemporaryDirectory();
+	await using fixture = await createFixture();
 
 	expect(
 		validateLocalReferences(
-			join(directory, 'SKILL.md'),
+			fixture.getPath('SKILL.md'),
 			'![missing](assets/missing.png)\n\n[guide]: references/missing.md\n',
 		),
 	).toEqual([
@@ -86,9 +74,3 @@ test('validates image and definition targets', async () => {
 		},
 	]);
 });
-
-async function createTemporaryDirectory(): Promise<string> {
-	const directory = await mkdtemp(join(tmpdir(), 'skill-references-'));
-	temporaryDirectories.push(directory);
-	return directory;
-}
