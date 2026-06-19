@@ -64,14 +64,8 @@
 			"optional": true
 		}
 	},
-	"devEngines": {
-		"packageManager": {
-			"name": "pnpm",
-			"version": "^11.5.2",
-			"onFail": "download"
-		}
-	},
 	"engines": {
 		"node": ">=22.13"
-	}
+	},
+	"packageManager": "pnpm@11.5.2"
 }

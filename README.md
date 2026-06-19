@@ -10,6 +10,17 @@ skill authoring conventions.
 pnpm add -D oxlint oxlint-plugin-agent-skills
 ```
 
+## Development
+
+The Nix development shell provides Vite+, which selects the pinned Node.js and
+pnpm toolchain for the project:
+
+```sh
+nix develop
+vp install --frozen-lockfile
+vp run check
+```
+
 ## Configure
 
 ```jsonc

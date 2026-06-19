@@ -1,17 +1,33 @@
 {
   inputs = {
     nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
-    nix-vite-plus.url = "github:ryoppippi/nix-vite-plus";
+    nix-vite-plus = {
+      url = "github:ryoppippi/nix-vite-plus";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
   };
 
-  outputs = { nixpkgs, nix-vite-plus, ... }:
+  outputs =
+    { nixpkgs, nix-vite-plus, ... }:
     let
-      system = "aarch64-darwin"; # change to your system
-      pkgs = import nixpkgs { inherit system; };
+      systems = [
+        "aarch64-darwin"
+        "aarch64-linux"
+        "x86_64-darwin"
+        "x86_64-linux"
+      ];
     in
     {
-      devShells.${system}.default = pkgs.mkShell {
-        packages = [ nix-vite-plus.packages.${system}.vp ];
-      };
+      devShells = nixpkgs.lib.genAttrs systems (
+        system:
+        let
+          pkgs = import nixpkgs { inherit system; };
+        in
+        {
+          default = pkgs.mkShellNoCC {
+            packages = [ nix-vite-plus.packages.${system}.vp ];
+          };
+        }
+      );
     };
 }
