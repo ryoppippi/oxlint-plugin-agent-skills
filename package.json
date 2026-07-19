@@ -69,5 +69,21 @@
 	"engines": {
 		"node": ">=24"
 	},
-	"packageManager": "pnpm@11.5.2"
+	"packageManager": "pnpm@11.5.2",
+	"changelogithub": {
+		"types": {
+			"feat": {
+				"title": "🚀 Features"
+			},
+			"fix": {
+				"title": "🐞 Bug Fixes"
+			},
+			"perf": {
+				"title": "🏎 Performance"
+			},
+			"docs": {
+				"title": "📖 Documentation"
+			}
+		}
+	}
 }
