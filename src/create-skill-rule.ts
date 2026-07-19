@@ -167,7 +167,8 @@ export function createSkillRule(
 
 			for (const skill of skills) {
 				const result = validate(skill.filePath, skill.source, option);
-				const found = result === undefined ? [] : Array.isArray(result) ? result : [result];
+				const found: readonly SkillIssue[] =
+					result === undefined ? [] : Array.isArray(result) ? result : [result];
 
 				for (const issue of found) {
 					issues.push({ filePath: skill.filePath, line: issue.line, message: issue.message });
@@ -206,7 +207,7 @@ export function discoverSkillFiles(
 		visitDirectory(resolve(cwd, root), skillFiles, visitedDirectories, visitedFiles);
 	}
 
-	return skillFiles.sort();
+	return skillFiles.toSorted();
 }
 
 function readRoots(option: unknown): readonly string[] {

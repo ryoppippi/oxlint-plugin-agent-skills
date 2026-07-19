@@ -79,7 +79,7 @@ function validateReference(
 
 	if (
 		lineCount <= maxLines ||
-		lines.slice(0, 20).some((line) => TABLE_OF_CONTENTS_LINK.test(line))
+		lines.slice(0, 20).some((referenceLine) => TABLE_OF_CONTENTS_LINK.test(referenceLine))
 	) {
 		return;
 	}
@@ -135,7 +135,7 @@ if (import.meta.vitest) {
 				'- [Usage](#usage)',
 				'',
 				'## Usage',
-				...Array(96).fill('content'),
+				...Array.from({ length: 96 }, () => 'content'),
 			].join('\n'),
 		});
 

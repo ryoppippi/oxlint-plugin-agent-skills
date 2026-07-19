@@ -38,7 +38,7 @@ export default plugin;
 if (import.meta.vitest) {
 	test('exports the oxlint-plugin-skills JavaScript plugin', () => {
 		expect(plugin.meta?.name).toBe('oxlint-plugin-skills');
-		expect(Object.keys(plugin.rules).sort()).toEqual([
+		expect(Object.keys(plugin.rules).toSorted()).toEqual([
 			'description-third-person',
 			'long-reference-has-toc',
 			'max-skill-lines',
@@ -111,10 +111,12 @@ if (import.meta.vitest) {
 			],
 		] as const;
 
-		for (const [source, destination] of fixtureCopies) {
-			await fixture.mkdir(path.dirname(destination));
-			await fixture.cp(fileURLToPath(new URL(source, import.meta.url)), destination);
-		}
+		await Promise.all(
+			fixtureCopies.map(async ([source, destination]) => {
+				await fixture.mkdir(path.dirname(destination));
+				await fixture.cp(fileURLToPath(new URL(source, import.meta.url)), destination);
+			}),
+		);
 
 		await fixture.writeFile(
 			'.oxlintrc.json',

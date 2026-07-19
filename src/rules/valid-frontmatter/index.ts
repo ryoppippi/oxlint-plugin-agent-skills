@@ -118,7 +118,7 @@ export function parseFrontmatter(source: string): ParsedFrontmatter {
 		};
 	}
 
-	const frontmatter = document.toJS();
+	const frontmatter: unknown = document.toJS();
 
 	if (!isRecord(frontmatter)) {
 		return {

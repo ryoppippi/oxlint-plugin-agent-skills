@@ -99,15 +99,26 @@ function readMaxCharacters(option: unknown): number {
 	return DEFAULT_MAX_INDEX_CHARACTERS;
 }
 
+function skillFixture(name: string, description: string): DiscoveredSkill {
+	return {
+		displayPath: `skills/${name}/SKILL.md`,
+		filePath: `/skills/${name}/SKILL.md`,
+		source: `---\nname: ${name}\ndescription: ${description}\n---\n\n# ${name}\n`,
+	};
+}
+
 if (import.meta.vitest) {
 	test('accepts an index within the budget', () => {
-		const skills = [skill('commit', 'Writes commits.'), skill('review', 'Reviews code.')];
+		const skills = [
+			skillFixture('commit', 'Writes commits.'),
+			skillFixture('review', 'Reviews code.'),
+		];
 
 		expect(validateSkillIndexBudget(skills)).toEqual([]);
 	});
 
 	test('reports a combined index over the configured budget', () => {
-		const skills = [skill('commit', 'a'.repeat(40)), skill('review', 'b'.repeat(40))];
+		const skills = [skillFixture('commit', 'a'.repeat(40)), skillFixture('review', 'b'.repeat(40))];
 
 		expect(validateSkillIndexBudget(skills, { maxCharacters: 50 })).toEqual([
 			{
@@ -130,12 +141,4 @@ if (import.meta.vitest) {
 
 		expect(validateSkillIndexBudget(skills, { maxCharacters: 1 })).toEqual([]);
 	});
-
-	function skill(name: string, description: string): DiscoveredSkill {
-		return {
-			displayPath: `skills/${name}/SKILL.md`,
-			filePath: `/skills/${name}/SKILL.md`,
-			source: `---\nname: ${name}\ndescription: ${description}\n---\n\n# ${name}\n`,
-		};
-	}
 }
