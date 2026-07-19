@@ -11,8 +11,8 @@ The rule checks:
 - description type, length, and XML tags;
 - optional `license`, `compatibility`, `metadata`, and `allowed-tools` fields.
 
-Unknown extension fields are allowed so tools can add metadata such as `paths`
-or `globs`.
+Unknown extension fields are allowed so tools can add metadata such as
+Claude Code's `paths` field.
 
 ## Options
 

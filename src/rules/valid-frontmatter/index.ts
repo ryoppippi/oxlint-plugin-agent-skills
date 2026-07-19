@@ -15,7 +15,8 @@
  * - names and descriptions do not contain XML tags.
  *
  * Unknown extension fields remain valid so tools can add metadata such as
- * `paths` or `globs` without making the skill incompatible with this plugin.
+ * Claude Code's `paths` field without making the skill incompatible with this
+ * plugin.
  * Parser locations are translated from frontmatter-relative positions to
  * actual SKILL.md lines before diagnostics are reported.
  *
