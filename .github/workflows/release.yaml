@@ -53,8 +53,10 @@ jobs:
           registry-url: 'https://registry.npmjs.org'
           package-manager-cache: false
       - run: nix develop --command vp install --frozen-lockfile
-      - run: nix develop --command vp run pack
-      - run: npm publish --access public
+      # pnpm resolves catalog: specifiers and runs the prepack build; npm
+      # would publish the manifest verbatim. --no-git-checks because the
+      # checkout is a detached tag, not a branch.
+      - run: nix develop --command pnpm publish --provenance --access public --no-git-checks
 
   release:
     needs:

@@ -35,6 +35,7 @@
 	"scripts": {
 		"build": "vp run pack",
 		"format": "vp fmt --write",
+		"prepack": "vp run pack",
 		"prepare": "vp config --no-agent",
 		"test:watch": "vp test"
 	},

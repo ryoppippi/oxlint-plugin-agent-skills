@@ -34,6 +34,7 @@
               nix-vite-plus.packages.${system}.vp
               git
               git-wt
+              pnpm
             ];
 
             shellHook = ''
