@@ -49,7 +49,9 @@
 		"fs-fixture": "2.14.0",
 		"oxlint": "1.72.0",
 		"oxlint-tsgolint": "0.24.0",
+		"publint": "0.3.21",
 		"typescript": "7.0.2",
+		"unplugin-unused": "0.5.7",
 		"vite": "catalog:",
 		"vite-plus": "catalog:"
 	},

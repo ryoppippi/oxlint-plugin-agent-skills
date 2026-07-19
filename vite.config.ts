@@ -67,6 +67,12 @@ export default defineConfig({
 		entry: ['src/index.ts'],
 		fixedExtension: false,
 		format: ['esm'],
+		publint: true,
+		unused: {
+			// oxlint is the host CLI that loads this plugin; it is spawned in
+			// tests rather than imported, so the import graph cannot see it.
+			ignore: ['oxlint'],
+		},
 	},
 	run: {
 		tasks: {
