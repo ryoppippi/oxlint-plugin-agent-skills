@@ -4,13 +4,17 @@ Limits `SKILL.md` to a configurable number of lines. The default is 200.
 
 ## Why 200
 
-Not every host delivers `SKILL.md` in full. Empirical analyses of Codex CLI
-sessions found it reads skills with `sed -n '1,<N>p'` and stops at a
-model-dependent boundary:
+<details>
+<summary>Codex CLI truncates long <code>SKILL.md</code> reads before this default's margin</summary>
 
-- gpt-5.5 truncated at line 220 in 39 of 47 observed reads and never issued a
-  follow-up read past the cap
-- gpt-5.4 stopped near line 260
+Not every host delivers `SKILL.md` in full.
+[Empirical analyses of Codex CLI sessions](https://www.reddit.com/r/codex/comments/1t1rbqt/codex_may_only_read_the_first_220_lines_of_a/)
+found it reads skills with `sed -n '1,<N>p'` and stops at a model-dependent
+boundary:
+
+- [gpt-5.5 truncated at line 220 in 39 of 47 observed reads](https://gist.github.com/haru0416-dev/8c1b01098f46e29d244f2085e408c789)
+  and never issued a follow-up read past the cap
+- [gpt-5.4 stopped near line 260](https://gist.github.com/haru0416-dev/8c1b01098f46e29d244f2085e408c789)
 - Claude Code and OpenCode read `SKILL.md` in full
 
 The truncation comes from Codex's prompt instruction to "read only enough to
@@ -22,6 +26,8 @@ conservative 180-200 line recommendation from those measurements.
 Anthropic's authoring guidance only asks for under 500 lines, so this rule is
 an operational safeguard for the strictest host, not a limit defined by the
 Agent Skills specification.
+
+</details>
 
 Move detailed guidance into directly linked files such as
 `references/api.md`.

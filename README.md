@@ -98,14 +98,6 @@ location.
 | [`skills/description-third-person`](src/rules/description-third-person/README.md)           | `description` is written in the third person, not first or second person                                            |
 | [`skills/no-unknown-frontmatter-fields`](src/rules/no-unknown-frontmatter-fields/README.md) | Frontmatter has no fields outside the specification (opt-in; not in the recommended preset)                         |
 
-The 200-line limit is an operational safeguard based on
-[community analyses of Codex skill reads](https://www.reddit.com/r/codex/comments/1t1rbqt/codex_may_only_read_the_first_220_lines_of_a/):
-Codex CLI truncates `SKILL.md` at a model-dependent boundary
-([220 lines for gpt-5.5, ~260 for gpt-5.4](https://gist.github.com/haru0416-dev/8c1b01098f46e29d244f2085e408c789)),
-while Claude Code and OpenCode read it in full. The default keeps a margin
-below the tightest observed boundary; this is not an Agent Skills
-specification limit.
-
 Index budgets are host-dependent. Codex uses at most 2% of the model context
 window for its initial skill list, or 8,000 characters when the context window
 is unknown. Projects targeting that fallback can configure
