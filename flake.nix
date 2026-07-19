@@ -30,6 +30,8 @@
             packages = [
               pkgs."nodejs_${nodeMajor}"
               nix-vite-plus.packages.${system}.vp
+              pkgs.git
+              pkgs.git-wt
             ];
 
             shellHook = ''
@@ -38,6 +40,14 @@
                 echo "Installing dependencies..."
                 vp install --frozen-lockfile
               fi
+
+              # Run the worktree setup script whenever `git wt` creates a new worktree,
+              # so new worktrees get deps/direnv wired up without a manual step.
+              git config --replace-all wt.hook ".agents/hooks/worktree-setup.ts"
+
+              # Move deleted worktree directories to the trash instead of `rm -rf`,
+              # which is noticeably slower on large node_modules trees.
+              git config --replace-all wt.remover "${pkgs.trash-cli}/bin/trash"
             '';
           };
         }
