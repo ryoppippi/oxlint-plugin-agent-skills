@@ -7,9 +7,9 @@ between skills. Claude's authoring guidance requires the third person, because a
 first- or second-person voice harms discovery.
 
 ```yaml
-description: I can help you process Excel files   # reported
-description: You can use this to process Excel files   # reported
-description: Processes Excel files and generates reports   # accepted
+description: I can help you process Excel files # reported
+description: You can use this to process Excel files # reported
+description: Processes Excel files and generates reports # accepted
 ```
 
 ## Scope (false-positive safety)
