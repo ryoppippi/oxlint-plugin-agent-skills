@@ -231,7 +231,7 @@ if (import.meta.vitest) {
 				categories: { correctness: 'off' },
 				jsPlugins: [path.resolve('dist/index.js')],
 				rules: {
-					'skills/max-skill-lines': ['error', { maxLines: 219 }],
+					'skills/max-skill-lines': ['error', { maxLines: 199 }],
 				},
 			}),
 		);
@@ -252,7 +252,7 @@ if (import.meta.vitest) {
 
 		expect(result.status).toBe(1);
 		expect(output).toContain(
-			'SKILL.md has 220 lines; keep it at or below 219 lines and move details into referenced files.',
+			'SKILL.md has 200 lines; keep it at or below 199 lines and move details into referenced files.',
 		);
 		expect(output).toContain('[Error/skills(max-skill-lines)]');
 	});

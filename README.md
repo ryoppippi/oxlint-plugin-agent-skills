@@ -32,7 +32,7 @@ vp run check
 		"skills/no-duplicate-skill-name": "error",
 		"skills/no-empty-skill-body": "error",
 		"skills/skill-index-budget": ["warn", { "maxCharacters": 20000 }],
-		"skills/max-skill-lines": ["warn", { "maxLines": 220 }],
+		"skills/max-skill-lines": ["warn", { "maxLines": 200 }],
 		"skills/no-broken-local-references": "error",
 		"skills/long-reference-has-toc": "warn",
 		"skills/no-deep-references": "warn",
@@ -86,7 +86,7 @@ location.
 | [`skills/no-duplicate-skill-name`](src/rules/no-duplicate-skill-name/README.md)             | Frontmatter `name` is unique across all configured skill roots                                                      |
 | [`skills/no-empty-skill-body`](src/rules/no-empty-skill-body/README.md)                     | `SKILL.md` includes instructions after its frontmatter                                                              |
 | [`skills/skill-index-budget`](src/rules/skill-index-budget/README.md)                       | Combined `name` and `description` size across all skills stays within a configurable character budget               |
-| [`skills/max-skill-lines`](src/rules/max-skill-lines/README.md)                             | `SKILL.md` stays within a configurable line limit, defaulting to 220                                                |
+| [`skills/max-skill-lines`](src/rules/max-skill-lines/README.md)                             | `SKILL.md` stays within a configurable line limit, defaulting to 200                                                |
 | [`skills/no-broken-local-references`](src/rules/no-broken-local-references/README.md)       | Relative Markdown references resolve to files inside the skill directory                                            |
 | [`skills/long-reference-has-toc`](src/rules/long-reference-has-toc/README.md)               | Long referenced text files provide a linked table of contents near the top                                          |
 | [`skills/no-deep-references`](src/rules/no-deep-references/README.md)                       | Relative Markdown links, images, and definitions point no deeper than one directory below `SKILL.md`                |
@@ -94,10 +94,13 @@ location.
 | [`skills/description-third-person`](src/rules/description-third-person/README.md)           | `description` is written in the third person, not first or second person                                            |
 | [`skills/no-unknown-frontmatter-fields`](src/rules/no-unknown-frontmatter-fields/README.md) | Frontmatter has no fields outside the specification (opt-in; not in the recommended preset)                         |
 
-The 220-line limit is an operational safeguard based on a
-[community analysis of Codex skill reads](https://www.reddit.com/r/codex/comments/1t1rbqt/codex_may_only_read_the_first_220_lines_of_a/).
-The observed median initial read was 220 lines across several model
-configurations; this is not an Agent Skills specification limit.
+The 200-line limit is an operational safeguard based on
+[community analyses of Codex skill reads](https://www.reddit.com/r/codex/comments/1t1rbqt/codex_may_only_read_the_first_220_lines_of_a/):
+Codex CLI truncates `SKILL.md` at a model-dependent boundary
+([220 lines for gpt-5.5, ~260 for gpt-5.4](https://gist.github.com/haru0416-dev/8c1b01098f46e29d244f2085e408c789)),
+while Claude Code and OpenCode read it in full. The default keeps a margin
+below the tightest observed boundary; this is not an Agent Skills
+specification limit.
 
 Index budgets are host-dependent. Codex uses at most 2% of the model context
 window for its initial skill list, or 8,000 characters when the context window
@@ -129,6 +132,7 @@ proposed lint rules.
 - [Codex Agent Skills guide](https://developers.openai.com/codex/skills)
 - [OpenAI skill examples](https://github.com/openai/skills)
 - [Codex 220-line skill read analysis](https://www.reddit.com/r/codex/comments/1t1rbqt/codex_may_only_read_the_first_220_lines_of_a/)
+- [Codex CLI SKILL.md reading depth: empirical findings](https://gist.github.com/haru0416-dev/8c1b01098f46e29d244f2085e408c789)
 - [Oxlint JavaScript plugins](https://oxc.rs/docs/guide/usage/linter/js-plugins)
 
 ## License

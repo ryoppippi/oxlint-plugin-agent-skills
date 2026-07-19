@@ -1,6 +1,6 @@
 ---
 name: invalid
-description: Contains 221 lines. Use when testing the rejected boundary.
+description: Contains 201 lines. Use when testing the rejected boundary.
 ---
 001
 002
@@ -199,23 +199,3 @@ description: Contains 221 lines. Use when testing the rejected boundary.
 195
 196
 197
-198
-199
-200
-201
-202
-203
-204
-205
-206
-207
-208
-209
-210
-211
-212
-213
-214
-215
-216
-217
