@@ -18,6 +18,7 @@
 		"type": "git",
 		"url": "git+https://github.com/ryoppippi/oxlint-plugin-agent-skills.git"
 	},
+	"funding": "https://github.com/sponsors/ryoppippi",
 	"files": [
 		"dist",
 		"src",

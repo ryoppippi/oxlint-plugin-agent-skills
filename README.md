@@ -135,6 +135,14 @@ proposed lint rules.
 - [Codex CLI SKILL.md reading depth: empirical findings](https://gist.github.com/haru0416-dev/8c1b01098f46e29d244f2085e408c789)
 - [Oxlint JavaScript plugins](https://oxc.rs/docs/guide/usage/linter/js-plugins)
 
+## GitHub Sponsors
+
+<p align="center">
+    <a href="https://github.com/sponsors/ryoppippi">
+        <img src="https://sponsors.ryoppippi.com/sponsors.png" alt="Sponsors">
+    </a>
+</p>
+
 ## License
 
 MIT
