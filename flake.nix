@@ -31,6 +31,14 @@
               pkgs."nodejs_${nodeMajor}"
               nix-vite-plus.packages.${system}.vp
             ];
+
+            shellHook = ''
+              # Install when node_modules is missing or the lockfile is newer.
+              if [ ! -f node_modules/.pnpm/lock.yaml ] || [ pnpm-lock.yaml -nt node_modules/.pnpm/lock.yaml ]; then
+                echo "Installing dependencies..."
+                vp install --frozen-lockfile
+              fi
+            '';
           };
         }
       );
