@@ -45,6 +45,7 @@
 		"@types/node": "22.19.21",
 		"fs-fixture": "2.14.0",
 		"oxlint": "1.72.0",
+		"oxlint-tsgolint": "0.24.0",
 		"typescript": "7.0.2",
 		"vite": "catalog:",
 		"vite-plus": "catalog:"
