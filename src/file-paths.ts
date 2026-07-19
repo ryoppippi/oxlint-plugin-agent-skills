@@ -6,11 +6,18 @@ export function escapesDirectory(directory: string, target: string): boolean {
 	return path === '..' || path.startsWith(`..${sep}`) || isAbsolute(path);
 }
 
-export function isFileInsideDirectory(directory: string, target: string): boolean {
+export function targetExists(target: string): boolean {
 	try {
-		return (
-			statSync(target).isFile() && !escapesDirectory(realpathSync(directory), realpathSync(target))
-		);
+		const stats = statSync(target);
+		return stats.isFile() || stats.isDirectory();
+	} catch {
+		return false;
+	}
+}
+
+export function isPathInsideDirectory(directory: string, target: string): boolean {
+	try {
+		return targetExists(target) && !escapesDirectory(realpathSync(directory), realpathSync(target));
 	} catch {
 		return false;
 	}

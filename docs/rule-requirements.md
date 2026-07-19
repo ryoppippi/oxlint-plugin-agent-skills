@@ -45,7 +45,10 @@ The rule must validate relative Markdown links, images, and link definitions in
 - resolve paths from the skill directory;
 - ignore fragments and external URLs;
 - accept a fragment on an existing local file;
-- reject paths that escape the skill directory;
+- accept a reference to an existing directory, not only files;
+- reject paths that escape the skill directory by default, while allowing an
+  opt-in `allowOutsideSkillDirectory` option for repositories that share
+  reference files or link between skills;
 - report the reference line and unresolved target;
 - avoid interpreting examples inside fenced code blocks as links.
 

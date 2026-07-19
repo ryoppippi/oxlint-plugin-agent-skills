@@ -1,7 +1,7 @@
 import { dirname, resolve } from 'node:path';
 
 import { createSkillRule } from '../../create-skill-rule.ts';
-import { escapesDirectory, isFileInsideDirectory } from '../../file-paths.ts';
+import { escapesDirectory, isPathInsideDirectory, targetExists } from '../../file-paths.ts';
 import { collectLocalMarkdownReferences } from '../../markdown-references.ts';
 
 export interface LocalReferenceIssue {
@@ -11,10 +11,20 @@ export interface LocalReferenceIssue {
 
 export const noBrokenLocalReferencesRule = createSkillRule(
 	'Require local SKILL.md references to resolve inside the skill directory.',
-	validateLocalReferences,
+	(filePath, source, option) =>
+		validateLocalReferences(filePath, source, readAllowOutsideSkillDirectory(option)),
+	{
+		allowOutsideSkillDirectory: {
+			type: 'boolean',
+		},
+	},
 );
 
-export function validateLocalReferences(filePath: string, source: string): LocalReferenceIssue[] {
+export function validateLocalReferences(
+	filePath: string,
+	source: string,
+	allowOutsideSkillDirectory = false,
+): LocalReferenceIssue[] {
 	const issues: LocalReferenceIssue[] = [];
 	const skillDirectory = dirname(filePath);
 
@@ -22,19 +32,35 @@ export function validateLocalReferences(filePath: string, source: string): Local
 		const target = resolve(skillDirectory, path);
 
 		if (escapesDirectory(skillDirectory, target)) {
+			if (!allowOutsideSkillDirectory) {
+				issues.push({
+					line,
+					message: `Reference "${url}" escapes the skill directory.`,
+				});
+			} else if (!targetExists(target)) {
+				issues.push({
+					line,
+					message: `Reference "${url}" does not resolve to an existing file or directory.`,
+				});
+			}
+		} else if (!isPathInsideDirectory(skillDirectory, target)) {
 			issues.push({
 				line,
-				message: `Reference "${url}" escapes the skill directory.`,
-			});
-		} else if (!isFileInsideDirectory(skillDirectory, target)) {
-			issues.push({
-				line,
-				message: `Reference "${url}" does not resolve to a file in this skill.`,
+				message: `Reference "${url}" does not resolve to a file or directory in this skill.`,
 			});
 		}
 	}
 
 	return issues;
+}
+
+function readAllowOutsideSkillDirectory(option: unknown): boolean {
+	return (
+		typeof option === 'object' &&
+		option !== null &&
+		'allowOutsideSkillDirectory' in option &&
+		option.allowOutsideSkillDirectory === true
+	);
 }
 
 if (import.meta.vitest) {
@@ -64,7 +90,8 @@ if (import.meta.vitest) {
 		).toEqual([
 			{
 				line: 3,
-				message: 'Reference "references/missing.md" does not resolve to a file in this skill.',
+				message:
+					'Reference "references/missing.md" does not resolve to a file or directory in this skill.',
 			},
 		]);
 	});
@@ -110,11 +137,81 @@ if (import.meta.vitest) {
 		).toEqual([
 			{
 				line: 1,
-				message: 'Reference "assets/missing.png" does not resolve to a file in this skill.',
+				message:
+					'Reference "assets/missing.png" does not resolve to a file or directory in this skill.',
 			},
 			{
 				line: 3,
-				message: 'Reference "references/missing.md" does not resolve to a file in this skill.',
+				message:
+					'Reference "references/missing.md" does not resolve to a file or directory in this skill.',
+			},
+		]);
+	});
+
+	test('accepts a reference to an existing directory', async () => {
+		const { createFixture } = await import('fs-fixture');
+		await using fixture = await createFixture({
+			'references/guide.md': '# Guide\n',
+		});
+
+		expect(
+			validateLocalReferences(fixture.getPath('SKILL.md'), 'See [references](references/).\n'),
+		).toEqual([]);
+	});
+
+	test('rejects an out-of-directory reference by default even when the target exists', async () => {
+		const { createFixture } = await import('fs-fixture');
+		await using fixture = await createFixture({
+			'shared/guide.md': '# Shared guide\n',
+			skill: {},
+		});
+
+		expect(
+			validateLocalReferences(
+				fixture.getPath('skill/SKILL.md'),
+				'Read [shared](../shared/guide.md).\n',
+			),
+		).toEqual([
+			{
+				line: 1,
+				message: 'Reference "../shared/guide.md" escapes the skill directory.',
+			},
+		]);
+	});
+
+	test('accepts an out-of-directory reference when allowOutsideSkillDirectory is set and the target exists', async () => {
+		const { createFixture } = await import('fs-fixture');
+		await using fixture = await createFixture({
+			'shared/guide.md': '# Shared guide\n',
+			skill: {},
+		});
+
+		expect(
+			validateLocalReferences(
+				fixture.getPath('skill/SKILL.md'),
+				'Read [shared](../shared/guide.md).\n',
+				true,
+			),
+		).toEqual([]);
+	});
+
+	test('reports a missing out-of-directory reference even when allowOutsideSkillDirectory is set', async () => {
+		const { createFixture } = await import('fs-fixture');
+		await using fixture = await createFixture({
+			skill: {},
+		});
+
+		expect(
+			validateLocalReferences(
+				fixture.getPath('skill/SKILL.md'),
+				'Read [shared](../shared/missing.md).\n',
+				true,
+			),
+		).toEqual([
+			{
+				line: 1,
+				message:
+					'Reference "../shared/missing.md" does not resolve to an existing file or directory.',
 			},
 		]);
 	});

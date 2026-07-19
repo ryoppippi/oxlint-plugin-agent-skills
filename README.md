@@ -91,7 +91,7 @@ location.
 | [`skills/no-empty-skill-body`](src/rules/no-empty-skill-body/README.md)                     | `SKILL.md` includes instructions after its frontmatter                                                              |
 | [`skills/skill-index-budget`](src/rules/skill-index-budget/README.md)                       | Combined `name` and `description` size across all skills stays within a configurable character budget               |
 | [`skills/max-skill-lines`](src/rules/max-skill-lines/README.md)                             | `SKILL.md` stays within a configurable line limit, defaulting to 200                                                |
-| [`skills/no-broken-local-references`](src/rules/no-broken-local-references/README.md)       | Relative Markdown references resolve to files inside the skill directory                                            |
+| [`skills/no-broken-local-references`](src/rules/no-broken-local-references/README.md)       | Relative Markdown references resolve to an existing file or directory, scoped to the skill directory by default     |
 | [`skills/long-reference-has-toc`](src/rules/long-reference-has-toc/README.md)               | Long referenced text files provide a linked table of contents near the top                                          |
 | [`skills/no-deep-references`](src/rules/no-deep-references/README.md)                       | Relative Markdown links, images, and definitions point no deeper than one directory below `SKILL.md`                |
 | [`skills/no-windows-paths`](src/rules/no-windows-paths/README.md)                           | Relative Markdown reference targets use forward slashes, not Windows-style backslashes                              |
