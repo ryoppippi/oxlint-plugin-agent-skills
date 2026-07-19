@@ -28,6 +28,30 @@ export default defineConfig({
 		fixedExtension: false,
 		format: ['esm'],
 	},
+	run: {
+		tasks: {
+			check: {
+				command: ['vp check', 'vp run test'],
+			},
+			'format-check': {
+				command: 'vp fmt --check',
+			},
+			lint: {
+				command: 'vp lint',
+			},
+			pack: {
+				command: 'vp pack',
+				output: ['dist/**'],
+			},
+			test: {
+				command: 'vp test run',
+				dependsOn: ['pack'],
+			},
+			typecheck: {
+				command: 'tsc --noEmit',
+			},
+		},
+	},
 	test: {
 		coverage: {
 			include: ['src/**/*.ts'],
