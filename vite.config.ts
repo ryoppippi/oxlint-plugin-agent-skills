@@ -2,7 +2,13 @@ import { configDefaults, defineConfig } from 'vite-plus';
 
 export default defineConfig({
 	fmt: {
-		ignorePatterns: ['**/__fixture__/**', 'dist/**', '.direnv/**', 'node_modules/**'],
+		ignorePatterns: [
+			'**/__fixture__/**',
+			'dist/**',
+			'.direnv/**',
+			'node_modules/**',
+			'.github/tagpr-template.md',
+		],
 		singleQuote: true,
 		useTabs: true,
 	},
@@ -12,7 +18,13 @@ export default defineConfig({
 			perf: 'error',
 			suspicious: 'error',
 		},
-		ignorePatterns: ['**/__fixture__/**', 'dist/**', '.direnv/**', 'node_modules/**'],
+		ignorePatterns: [
+			'**/__fixture__/**',
+			'dist/**',
+			'.direnv/**',
+			'node_modules/**',
+			'.github/tagpr-template.md',
+		],
 		jsPlugins: [{ name: 'vite-plus', specifier: 'vite-plus/oxlint-plugin' }],
 		plugins: ['eslint', 'typescript', 'unicorn', 'oxc', 'import', 'node', 'promise', 'vitest'],
 		options: {

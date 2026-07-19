@@ -1,0 +1,84 @@
+name: tagpr
+
+on:
+  push:
+    branches:
+      - main
+
+concurrency: tagpr
+
+jobs:
+  tagpr:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    permissions:
+      contents: write
+      pull-requests: write
+      issues: read
+    outputs:
+      tag: ${{ steps.tagpr.outputs.tag }}
+    steps:
+      # persist-credentials stays on (default) so tagpr can push the release PR and tag
+      - uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+      - id: tagpr
+        uses: Songmu/tagpr@d1b8138b7a31075141b6cd64103de9485ced7ac9 # v1.20.1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  # The release jobs below run in this workflow instead of a tag-triggered one
+  # because tags pushed with GITHUB_TOKEN do not trigger `on: push: tags`
+  # workflows. They run only when tagpr just tagged a release-PR merge, and
+  # check out that tag explicitly. To retry a failed release, re-run only the
+  # failed jobs: a full re-run finds no new tag and skips everything.
+  npm:
+    needs: tagpr
+    if: needs.tagpr.outputs.tag != ''
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    env:
+      NIX_CONFIG: 'access-tokens = github.com=${{ github.token }}'
+    permissions:
+      contents: read
+      id-token: write
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          ref: ${{ needs.tagpr.outputs.tag }}
+          fetch-depth: 0
+          persist-credentials: false
+      - uses: nixbuild/nix-quick-install-action@v35
+      - uses: actions/setup-node@v6
+        with:
+          node-version-file: .node-version
+          registry-url: 'https://registry.npmjs.org'
+          package-manager-cache: false
+      - run: nix develop --command vp install --frozen-lockfile
+      - run: nix develop --command vp run pack
+      - run: npm publish --access public
+
+  release:
+    needs:
+      - tagpr
+      - npm
+    if: needs.tagpr.outputs.tag != ''
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    env:
+      NIX_CONFIG: 'access-tokens = github.com=${{ github.token }}'
+    permissions:
+      contents: write
+    steps:
+      # changelogithub resolves the release tag with `git tag --points-at HEAD`,
+      # so checking out the tag is what makes it pick the right release
+      - uses: actions/checkout@v6
+        with:
+          ref: ${{ needs.tagpr.outputs.tag }}
+          fetch-depth: 0
+          persist-credentials: false
+      - uses: nixbuild/nix-quick-install-action@v35
+      - run: nix develop --command vp install --frozen-lockfile
+      - run: nix develop --command vp exec changelogithub
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
