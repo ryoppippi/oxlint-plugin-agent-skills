@@ -120,11 +120,15 @@ These are implemented discovery requirements rather than lint rules:
 - deduplicate canonical file paths when configured roots overlap;
 - prevent symlink cycles during recursive discovery;
 - preserve repository-relative diagnostic paths;
-- document that Codex discovers `.agents/skills` from the current directory up
-  to the repository root, while this plugin scans roots relative to Oxlint's
-  working directory;
+- document that Claude Code natively discovers `.claude/skills` and Codex
+  natively discovers `.agents/skills` from the current directory up to the
+  repository root, while this plugin scans roots relative to Oxlint's working
+  directory;
 - keep `.agent/skills`, `agents/skills`, and `skills` as compatibility roots,
-  not as claims about Codex-native discovery.
+  not as claims about Claude Code- or Codex-native discovery;
+- revisit self-managed discovery if Oxlint starts passing Markdown files to
+  JavaScript plugins: diagnostics could then attach to `SKILL.md` itself and
+  file selection, ignore patterns, and caching would move to Oxlint.
 
 ## Out of scope for deterministic linting
 

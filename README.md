@@ -8,21 +8,21 @@ Oxlint JavaScript plugin for validating the portable
 [Agent Skills](https://agentskills.io/specification) format and host-specific
 skill authoring conventions.
 
+## Set up with an agent
+
+To let a coding agent (Claude Code, Codex, and so on) install and configure
+this plugin for you, paste this prompt:
+
+```text
+Set up oxlint-plugin-agent-skills in this repository: install oxlint and oxlint-plugin-agent-skills as dev dependencies.
+Read the installed docs locally — node_modules/oxlint-plugin-agent-skills/README.md for the Configure section, and node_modules/oxlint-plugin-agent-skills/src/rules/<rule>/README.md for each rule's options.
+Register the plugin and its rules in the Oxlint configuration, then run Oxlint against a JavaScript or TypeScript file to confirm the skills rules report as expected.
+```
+
 ## Install
 
 ```sh
 pnpm add -D oxlint oxlint-plugin-agent-skills
-```
-
-## Development
-
-The Nix development shell provides Node.js 24 LTS and Vite+, which selects the
-pinned pnpm toolchain for the project:
-
-```sh
-nix develop
-vp install --frozen-lockfile
-vp run check
 ```
 
 ## Configure
@@ -56,14 +56,19 @@ directory:
 
 - `.agent/skills`
 - `.agents/skills`
+- `.claude/skills`
 - `agents/skills`
 - `skills`
 
-These are compatibility roots for different agent hosts. Codex natively scans
-`.agents/skills` from the current working directory up to the repository root;
-the other defaults do not imply Codex-native discovery support.
+These are compatibility roots for different agent hosts. Claude Code natively
+scans `.claude/skills` for project-level skills, and Codex natively scans
+`.agents/skills` from the current working directory up to the repository
+root; the other defaults do not imply native discovery support for either
+host.
 
-Configure other skill roots through the rule option:
+Set the `roots` rule option to scan other locations, or to restrict scanning
+to specific hosts' directories — for example only Codex's `.agents/skills`
+and Claude Code's `.claude/skills`:
 
 ```jsonc
 {
@@ -71,7 +76,7 @@ Configure other skill roots through the rule option:
 		"skills/valid-frontmatter": [
 			"error",
 			{
-				"roots": ["company/agent-skills"],
+				"roots": [".agents/skills", ".claude/skills"],
 			},
 		],
 	},
@@ -138,6 +143,22 @@ proposed lint rules.
         <img src="https://sponsors.ryoppippi.com/sponsors.png" alt="Sponsors">
     </a>
 </p>
+
+## Development
+
+<details>
+<summary>Set up the development environment and run the checks</summary>
+
+The Nix development shell provides Node.js 24 LTS and Vite+, which selects the
+pinned pnpm toolchain for the project:
+
+```sh
+nix develop
+vp install --frozen-lockfile
+vp run check
+```
+
+</details>
 
 ## License
 

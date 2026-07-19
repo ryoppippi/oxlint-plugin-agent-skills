@@ -16,8 +16,9 @@
  * produces a new signature and is validated again in long-running processes.
  *
  * Rule options accept `{ roots: string[] }`. When omitted, rules scan the
- * standard Agent Skill locations `.agents/skills`, `agents/skills`, and
- * `skills`, relative to Oxlint's working directory.
+ * standard Agent Skill locations `.agent/skills`, `.agents/skills`,
+ * `.claude/skills`, `agents/skills`, and `skills`, relative to Oxlint's
+ * working directory.
  */
 import { readdirSync, readFileSync, realpathSync, statSync } from 'node:fs';
 import { join, relative, resolve, sep } from 'node:path';
@@ -55,6 +56,7 @@ export type AggregateSkillValidator = (
 export const DEFAULT_SKILL_ROOTS = [
 	'.agent/skills',
 	'.agents/skills',
+	'.claude/skills',
 	'agents/skills',
 	'skills',
 ] as const;
@@ -309,6 +311,7 @@ if (import.meta.vitest) {
 		expect(discoverSkillFiles(cwd)).toEqual([
 			join(cwd, '.agent/skills/formatting/SKILL.md'),
 			join(cwd, '.agents/skills/commit/SKILL.md'),
+			join(cwd, '.claude/skills/deploy/SKILL.md'),
 			join(cwd, 'agents/skills/testing/SKILL.md'),
 		]);
 	});
