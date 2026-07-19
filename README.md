@@ -83,20 +83,20 @@ location.
 
 ## Rules
 
-| Rule                                                                                        | Checks                                                                                                              |
-| ------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------- |
-| [`skills/valid-frontmatter`](src/rules/valid-frontmatter/README.md)                         | Valid YAML, required `name` and `description`, field lengths and types, naming syntax, XML tags, and reserved names |
-| [`skills/name-matches-directory`](src/rules/name-matches-directory/README.md)               | Frontmatter `name` matches the directory containing `SKILL.md`                                                      |
-| [`skills/no-duplicate-skill-name`](src/rules/no-duplicate-skill-name/README.md)             | Frontmatter `name` is unique across all configured skill roots                                                      |
-| [`skills/no-empty-skill-body`](src/rules/no-empty-skill-body/README.md)                     | `SKILL.md` includes instructions after its frontmatter                                                              |
-| [`skills/skill-index-budget`](src/rules/skill-index-budget/README.md)                       | Combined `name` and `description` size across all skills stays within a configurable character budget               |
-| [`skills/max-skill-lines`](src/rules/max-skill-lines/README.md)                             | `SKILL.md` stays within a configurable line limit, defaulting to 200                                                |
-| [`skills/no-broken-local-references`](src/rules/no-broken-local-references/README.md)       | Relative Markdown references resolve to an existing file or directory, scoped to the skill directory by default     |
-| [`skills/long-reference-has-toc`](src/rules/long-reference-has-toc/README.md)               | Long referenced text files provide a linked table of contents near the top                                          |
-| [`skills/no-deep-references`](src/rules/no-deep-references/README.md)                       | Relative Markdown links, images, and definitions point no deeper than one directory below `SKILL.md`                |
-| [`skills/no-windows-paths`](src/rules/no-windows-paths/README.md)                           | Relative Markdown reference targets use forward slashes, not Windows-style backslashes                              |
-| [`skills/description-third-person`](src/rules/description-third-person/README.md)           | `description` is written in the third person, not first or second person                                            |
-| [`skills/no-unknown-frontmatter-fields`](src/rules/no-unknown-frontmatter-fields/README.md) | Frontmatter has no fields outside the specification (opt-in; not in the recommended preset)                         |
+| Rule                                                                                        | Checks                                                                                                                              |
+| ------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------- |
+| [`skills/valid-frontmatter`](src/rules/valid-frontmatter/README.md)                         | Valid YAML, required `name` and `description`, field lengths and types, naming syntax, XML tags, and reserved names                 |
+| [`skills/name-matches-directory`](src/rules/name-matches-directory/README.md)               | Frontmatter `name` matches the directory containing `SKILL.md`                                                                      |
+| [`skills/no-duplicate-skill-name`](src/rules/no-duplicate-skill-name/README.md)             | Frontmatter `name` is unique across all configured skill roots                                                                      |
+| [`skills/no-empty-skill-body`](src/rules/no-empty-skill-body/README.md)                     | `SKILL.md` includes instructions after its frontmatter                                                                              |
+| [`skills/skill-index-budget`](src/rules/skill-index-budget/README.md)                       | Combined `name` and `description` size across all skills stays within a configurable character budget                               |
+| [`skills/max-skill-lines`](src/rules/max-skill-lines/README.md)                             | `SKILL.md` stays within a configurable line limit, defaulting to 200                                                                |
+| [`skills/no-broken-local-references`](src/rules/no-broken-local-references/README.md)       | Relative Markdown references resolve to an existing file or directory, scoped to the skill directory by default                     |
+| [`skills/long-reference-has-toc`](src/rules/long-reference-has-toc/README.md)               | Long referenced text files provide a linked table of contents near the top                                                          |
+| [`skills/no-deep-references`](src/rules/no-deep-references/README.md)                       | Relative Markdown links, images, and definitions point no deeper than one directory below `SKILL.md`                                |
+| [`skills/no-windows-paths`](src/rules/no-windows-paths/README.md)                           | Relative Markdown reference targets use forward slashes, not Windows-style backslashes                                              |
+| [`skills/description-third-person`](src/rules/description-third-person/README.md)           | `description` is written in the third person, not first or second person                                                            |
+| [`skills/no-unknown-frontmatter-fields`](src/rules/no-unknown-frontmatter-fields/README.md) | Frontmatter has no fields outside the specification and Claude Code's documented extensions (opt-in; not in the recommended preset) |
 
 Index budgets are host-dependent. Codex uses at most 2% of the model context
 window for its initial skill list, or 8,000 characters when the context window

@@ -59,7 +59,8 @@ export const DEFAULT_SKILL_ROOTS = [
 	'skills',
 ] as const;
 
-const ROOTS_OPTION_SCHEMA = {
+/** Reusable JSON schema for options that accept a non-empty list of unique strings. */
+export const STRING_ARRAY_OPTION_SCHEMA = {
 	items: {
 		minLength: 1,
 		type: 'string',
@@ -68,6 +69,8 @@ const ROOTS_OPTION_SCHEMA = {
 	type: 'array',
 	uniqueItems: true,
 } as const;
+
+const ROOTS_OPTION_SCHEMA = STRING_ARRAY_OPTION_SCHEMA;
 
 interface IntegerOptionSchema {
 	minimum?: number;
