@@ -1,3 +1,4 @@
 .direnv
+.vite-hooks
 dist
 node_modules
