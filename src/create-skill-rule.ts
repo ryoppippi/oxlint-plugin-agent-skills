@@ -308,7 +308,7 @@ if (import.meta.vitest) {
 	test('follows symlinked skill directories', async () => {
 		const { createFixture } = await import('fs-fixture');
 		await using fixture = await createFixture({
-			'.agents/skills/example': ({ getPath, symlink }) => symlink(getPath('shared/example')),
+			'.agents/skills/example': (ctx) => ctx.symlink(ctx.getPath('shared/example')),
 			'shared/example/SKILL.md': '# Example\n',
 		});
 
@@ -331,7 +331,7 @@ if (import.meta.vitest) {
 	test('does not recurse forever through symlink cycles', async () => {
 		const { createFixture } = await import('fs-fixture');
 		await using fixture = await createFixture({
-			'skills/example/cycle': ({ getPath, symlink }) => symlink(getPath('skills')),
+			'skills/example/cycle': (ctx) => ctx.symlink(ctx.getPath('skills')),
 			'skills/example/SKILL.md': '# Example\n',
 		});
 
@@ -343,7 +343,7 @@ if (import.meta.vitest) {
 	test('ignores broken symlinks while scanning skills', async () => {
 		const { createFixture } = await import('fs-fixture');
 		await using fixture = await createFixture({
-			'skills/broken': ({ getPath, symlink }) => symlink(getPath('missing')),
+			'skills/broken': (ctx) => ctx.symlink(ctx.getPath('missing')),
 		});
 
 		expect(discoverSkillFiles(fixture.path, ['skills'])).toEqual([]);

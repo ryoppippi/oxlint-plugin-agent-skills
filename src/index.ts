@@ -57,7 +57,7 @@ if (import.meta.vitest) {
 	test('reports Agent Skill violations through JavaScript plugin rules', async () => {
 		const { createFixture } = await import('fs-fixture');
 		const { spawnSync } = await import('node:child_process');
-		const { dirname, resolve } = await import('node:path');
+		const path = await import('node:path');
 		const { fileURLToPath } = await import('node:url');
 		await using fixture = await createFixture({
 			'.agents/skills/long-reference/references/api.md': Array(101).fill('content').join('\n'),
@@ -112,7 +112,7 @@ if (import.meta.vitest) {
 		] as const;
 
 		for (const [source, destination] of fixtureCopies) {
-			await fixture.mkdir(dirname(destination));
+			await fixture.mkdir(path.dirname(destination));
 			await fixture.cp(fileURLToPath(new URL(source, import.meta.url)), destination);
 		}
 
@@ -120,7 +120,7 @@ if (import.meta.vitest) {
 			'.oxlintrc.json',
 			JSON.stringify({
 				categories: { correctness: 'off' },
-				jsPlugins: [resolve('dist/index.js')],
+				jsPlugins: [path.resolve('dist/index.js')],
 				rules: {
 					'skills/description-third-person': 'error',
 					'skills/long-reference-has-toc': 'error',
@@ -141,7 +141,7 @@ if (import.meta.vitest) {
 		const result = spawnSync(
 			process.execPath,
 			[
-				resolve('node_modules/oxlint/bin/oxlint'),
+				path.resolve('node_modules/oxlint/bin/oxlint'),
 				'--config',
 				'.oxlintrc.json',
 				'anchor.js',
@@ -170,7 +170,7 @@ if (import.meta.vitest) {
 	test('scans configured skill roots', async () => {
 		const { createFixture } = await import('fs-fixture');
 		const { spawnSync } = await import('node:child_process');
-		const { resolve } = await import('node:path');
+		const path = await import('node:path');
 		const { fileURLToPath } = await import('node:url');
 		await using fixture = await createFixture({
 			'anchor.js': 'const anchor = 1;\n',
@@ -184,7 +184,7 @@ if (import.meta.vitest) {
 			'.oxlintrc.json',
 			JSON.stringify({
 				categories: { correctness: 'off' },
-				jsPlugins: [resolve('dist/index.js')],
+				jsPlugins: [path.resolve('dist/index.js')],
 				rules: {
 					'skills/valid-frontmatter': ['error', { roots: ['company/skills'] }],
 				},
@@ -194,7 +194,7 @@ if (import.meta.vitest) {
 		const result = spawnSync(
 			process.execPath,
 			[
-				resolve('node_modules/oxlint/bin/oxlint'),
+				path.resolve('node_modules/oxlint/bin/oxlint'),
 				'--config',
 				'.oxlintrc.json',
 				'anchor.js',
@@ -213,7 +213,7 @@ if (import.meta.vitest) {
 	test('uses the configured maximum skill length', async () => {
 		const { createFixture } = await import('fs-fixture');
 		const { spawnSync } = await import('node:child_process');
-		const { resolve } = await import('node:path');
+		const path = await import('node:path');
 		const { fileURLToPath } = await import('node:url');
 		await using fixture = await createFixture({
 			'.agents/skills/valid': {},
@@ -227,7 +227,7 @@ if (import.meta.vitest) {
 			'.oxlintrc.json',
 			JSON.stringify({
 				categories: { correctness: 'off' },
-				jsPlugins: [resolve('dist/index.js')],
+				jsPlugins: [path.resolve('dist/index.js')],
 				rules: {
 					'skills/max-skill-lines': ['error', { maxLines: 219 }],
 				},
@@ -237,7 +237,7 @@ if (import.meta.vitest) {
 		const result = spawnSync(
 			process.execPath,
 			[
-				resolve('node_modules/oxlint/bin/oxlint'),
+				path.resolve('node_modules/oxlint/bin/oxlint'),
 				'--config',
 				'.oxlintrc.json',
 				'anchor.js',
