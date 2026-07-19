@@ -27,11 +27,13 @@
         in
         {
           default = pkgs.mkShellNoCC {
-            packages = [
+            # `with pkgs;` puts the list in nixd's "package scope", which is what
+            # enables bare-identifier completion and version inlay hints
+            packages = with pkgs; [
               pkgs."nodejs_${nodeMajor}"
               nix-vite-plus.packages.${system}.vp
-              pkgs.git
-              pkgs.git-wt
+              git
+              git-wt
             ];
 
             shellHook = ''

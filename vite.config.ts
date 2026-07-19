@@ -24,9 +24,6 @@ export default defineConfig({
 			'.direnv/**',
 			'node_modules/**',
 			'.github/tagpr-template.md',
-			// Bun script run outside the project tsconfig; type-aware rules
-			// cannot resolve its Bun/node globals.
-			'.agents/**',
 		],
 		jsPlugins: [{ name: 'vite-plus', specifier: 'vite-plus/oxlint-plugin' }],
 		plugins: ['eslint', 'typescript', 'unicorn', 'oxc', 'import', 'node', 'promise', 'vitest'],
