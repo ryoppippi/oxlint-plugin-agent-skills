@@ -1,5 +1,9 @@
 # oxlint-plugin-agent-skills
 
+[![npm version](https://img.shields.io/npm/v/oxlint-plugin-agent-skills?color=yellow)](https://npmjs.com/package/oxlint-plugin-agent-skills)
+[![npm downloads](https://img.shields.io/npm/dm/oxlint-plugin-agent-skills)](https://npmjs.com/package/oxlint-plugin-agent-skills)
+[![license](https://img.shields.io/npm/l/oxlint-plugin-agent-skills)](https://github.com/ryoppippi/oxlint-plugin-agent-skills/blob/main/LICENSE)
+
 Oxlint JavaScript plugin for validating the portable
 [Agent Skills](https://agentskills.io/specification) format and host-specific
 skill authoring conventions.
