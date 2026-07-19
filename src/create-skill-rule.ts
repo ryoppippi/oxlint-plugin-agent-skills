@@ -74,7 +74,11 @@ interface IntegerOptionSchema {
 	type: 'integer';
 }
 
-type SkillRuleOptionSchema = IntegerOptionSchema | typeof ROOTS_OPTION_SCHEMA;
+interface BooleanOptionSchema {
+	type: 'boolean';
+}
+
+type SkillRuleOptionSchema = BooleanOptionSchema | IntegerOptionSchema | typeof ROOTS_OPTION_SCHEMA;
 
 /**
  * Builds an Oxlint rule whose validator sees every discovered skill at once.
