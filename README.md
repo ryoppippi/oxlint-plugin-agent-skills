@@ -25,17 +25,6 @@ Register the plugin and its rules in the Oxlint configuration, then run Oxlint a
 pnpm add -D oxlint oxlint-plugin-agent-skills
 ```
 
-## Development
-
-The Nix development shell provides Node.js 24 LTS and Vite+, which selects the
-pinned pnpm toolchain for the project:
-
-```sh
-nix develop
-vp install --frozen-lockfile
-vp run check
-```
-
 ## Configure
 
 ```jsonc
@@ -154,6 +143,22 @@ proposed lint rules.
         <img src="https://sponsors.ryoppippi.com/sponsors.png" alt="Sponsors">
     </a>
 </p>
+
+## Development
+
+<details>
+<summary>Set up the development environment and run the checks</summary>
+
+The Nix development shell provides Node.js 24 LTS and Vite+, which selects the
+pinned pnpm toolchain for the project:
+
+```sh
+nix develop
+vp install --frozen-lockfile
+vp run check
+```
+
+</details>
 
 ## License
 
