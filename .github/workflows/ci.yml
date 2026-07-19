@@ -12,11 +12,12 @@ permissions:
 jobs:
   check:
     runs-on: ubuntu-latest
-    env:
-      NIX_CONFIG: 'access-tokens = github.com=${{ github.token }}'
+    timeout-minutes: 15
     steps:
-      - uses: actions/checkout@v6
-      - uses: nixbuild/nix-quick-install-action@v35
+      - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
+        with:
+          persist-credentials: false
+      - uses: ./.github/actions/setup-nix-cache
       - name: Install dependencies
         run: nix develop --command vp install --frozen-lockfile
       - name: Check

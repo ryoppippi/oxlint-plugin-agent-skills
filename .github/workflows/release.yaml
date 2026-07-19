@@ -19,7 +19,7 @@ jobs:
       tag: ${{ steps.tagpr.outputs.tag }}
     steps:
       # persist-credentials stays on (default) so tagpr can push the release PR and tag
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
         with:
           fetch-depth: 0
       - id: tagpr
@@ -37,19 +37,17 @@ jobs:
     if: needs.tagpr.outputs.tag != ''
     runs-on: ubuntu-latest
     timeout-minutes: 15
-    env:
-      NIX_CONFIG: 'access-tokens = github.com=${{ github.token }}'
     permissions:
       contents: read
       id-token: write
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
         with:
           ref: ${{ needs.tagpr.outputs.tag }}
           fetch-depth: 0
           persist-credentials: false
-      - uses: nixbuild/nix-quick-install-action@v35
-      - uses: actions/setup-node@v6
+      - uses: ./.github/actions/setup-nix-cache
+      - uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6.5.0
         with:
           node-version-file: .node-version
           registry-url: 'https://registry.npmjs.org'
@@ -65,19 +63,17 @@ jobs:
     if: needs.tagpr.outputs.tag != ''
     runs-on: ubuntu-latest
     timeout-minutes: 10
-    env:
-      NIX_CONFIG: 'access-tokens = github.com=${{ github.token }}'
     permissions:
       contents: write
     steps:
       # changelogithub resolves the release tag with `git tag --points-at HEAD`,
       # so checking out the tag is what makes it pick the right release
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
         with:
           ref: ${{ needs.tagpr.outputs.tag }}
           fetch-depth: 0
           persist-credentials: false
-      - uses: nixbuild/nix-quick-install-action@v35
+      - uses: ./.github/actions/setup-nix-cache
       - run: nix develop --command vp install --frozen-lockfile
       - run: nix develop --command vp exec changelogithub
         env:
