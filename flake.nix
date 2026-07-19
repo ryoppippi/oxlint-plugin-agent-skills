@@ -34,8 +34,6 @@
               nix-vite-plus.packages.${system}.vp
               git
               git-wt
-
-              nix-ld
             ];
 
             shellHook = ''
