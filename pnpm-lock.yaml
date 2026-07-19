@@ -230,7 +230,7 @@ importers:
         specifier: 22.19.21
         version: 22.19.21
       changelogithub:
-        specifier: ^14.0.0
+        specifier: 14.0.0
         version: 14.0.0
       fs-fixture:
         specifier: 2.14.0
